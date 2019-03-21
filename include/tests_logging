@@ -6,7 +6,7 @@
 # ------------------
 #
 # Copyright 2007-2013, Michael Boelen
-# Copyright 2007-2018, CISOfy
+# Copyright 2007-2019, CISOfy
 #
 # Website  : https://cisofy.com
 # Blog     : http://linux-audit.com
@@ -363,7 +363,7 @@
                 # Search for configured destinations with an IP address or hostname, then determine which ones are used as a log destination
                 DESTINATIONS=$(${GREPBINARY} "^destination" ${SYSLOGD_CONF} | ${EGREPBINARY} "(udp|tcp)" | ${GREPBINARY} "port" | ${AWKBINARY} '{print $2}')
                 for DESTINATION in ${DESTINATIONS}; do
-                    FIND2=$(${GREPBINARY} "log" | ${GREPBINARY} "source" | ${EGREPBINARY} "destination\(${DESTINATION}\)")
+                    FIND2=$(${GREPBINARY} "log" ${SYSLOGD_CONF} | ${GREPBINARY} "source" | ${EGREPBINARY} "destination\(${DESTINATION}\)")
                     if [ ! -z "${FIND2}" = "" ]; then
                         LogText "Result: found destination ${DESTINATION} configured for remote logging"
                         REMOTE_LOGGING_ENABLED=1
@@ -479,7 +479,7 @@
 #
     # Test        : LOGG-2190
     # Description : Checking deleted files
-    if [ ! "${LSOFBINARY}" = "" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
+    if [ ! -z "${LSOFBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
     Register --test-no LOGG-2190 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Checking for deleted files in use"
     if [ ${SKIPTEST} -eq 0 ]; then
         EARLY_MYSQL=""
@@ -488,7 +488,11 @@
         LSOF_GREP="WARNING|Output information"
 
         # MySQL versions prior to 5.6 leave lots of deleted in-use files in /tmp, ignoring those
-        if [ ! -z "${DPKGBINARY}" ]; then EARLY_MYSQL=$(${DPKGBINARY} -l | ${EGREPBINARY} mysql-server-5.[0-5]); fi
+        if [ ! -z "${DPKGBINARY}" ]; then
+            EARLY_MYSQL=$(${DPKGBINARY} -l | ${EGREPBINARY} mysql-server-5.[0-5])
+        elif [ ! -z "${RPMBINARY}" ]; then
+            EARLY_MYSQL=$(${RPMBINARY} -qa mariadb | ${EGREPBINARY} mariadb-5.[0-5])
+        fi
         if [ ! -z "${EARLY_MYSQL}" ]; then LSOF_GREP="${LSOF_GREP}|mysqld"; fi
 
         # grsecurity causes Fail2Ban to hold onto deleted in-use files in /var/tmp

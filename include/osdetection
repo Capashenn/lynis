@@ -6,7 +6,7 @@
 # ------------------
 #
 # Copyright 2007-2013, Michael Boelen
-# Copyright 2007-2018, CISOfy
+# Copyright 2007-2019, CISOfy
 #
 # Website  : https://cisofy.com
 # Blog     : http://linux-audit.com
@@ -60,7 +60,7 @@
                     10.11 | 10.11.[0-9]*) OS_FULLNAME="Mac OS X 10.11 (El Capitan)" ;;
                     10.12 | 10.12.[0-9]*) OS_FULLNAME="macOS Sierra (${OS_VERSION})" ;;
                     10.13 | 10.13.[0-9]*) OS_FULLNAME="macOS High Sierra (${OS_VERSION})" ;;
-                    10.14 | 10.13.[0-9]*) OS_FULLNAME="macOS Mojave (${OS_VERSION})" ;;
+                    10.14 | 10.14.[0-9]*) OS_FULLNAME="macOS Mojave (${OS_VERSION})" ;;
                     *) echo "Unknown macOS version. Do you know what version it is? Create an issue at ${PROGRAM_SOURCE}" ;;
                 esac
             else
@@ -507,6 +507,28 @@
     # Detect if we are using a QNAP NAS
     if [ -d /share/CACHEDEV1_DATA/.qpkg ]; then
         QNAP_DEVICE=1
+    fi
+
+    # Check if this OS is end-of-life
+    EOL=255
+    EOL_DATE=""
+    EOL_TIMESTAMP=0
+    if [ ! -z "${OS_VERSION}" ]; then
+        if [ -f "${DBDIR}/software-eol.db" ]; then
+            FIND="${OS_FULLNAME}"
+            EOL_TIMESTAMP=$(awk -v value="${FIND}" -F: '{if ($1=="os" && value ~ $2){print $4}}' ${DBDIR}/software-eol.db | head -n 1)
+            if [ ! -z "${EOL_TIMESTAMP}" ]; then
+                EOL_DATE=$(awk -v value="${FIND}" -F: '{if ($1=="os" && value ~ $2){print $3}}' ${DBDIR}/software-eol.db | head -n 1)
+                NOW=$(date "+%s")
+                if [ ! -z "${NOW}" ]; then
+                    if [ ${NOW} -gt ${EOL_TIMESTAMP} ]; then
+                        EOL=1
+                    else
+                        EOL=0
+                    fi
+                fi
+            fi
+        fi
     fi
 
 
