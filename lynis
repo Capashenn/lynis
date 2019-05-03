@@ -934,10 +934,10 @@ ${NORMAL}
             LogText "Info: perform tests from all categories"
 
             INCLUDE_TESTS="accounting authentication banners boot_services containers crypto \
-                           databases dns file_integrity file_permissions filesystems firewalls \
-                           hardening homedirs insecure_services kernel kernel_hardening ldap \
-                           logging mac_frameworks mail_messaging malware memory_processes nameservices \
-                           networking php ports_packages printers_spools scheduling shells \
+                           databases dns filesystems file_permissions file_integrity firewalls \
+                           homedirs hardening insecure_services kernel kernel_hardening ldap \
+                           logging mac_frameworks mail_messaging malware nameservices \
+                            php ports_packages printers_spools memory_processes scheduling shells \
                            snmp squid ssh usb storage storage_nfs time tooling virtualization   \
                            webservers"
         else
