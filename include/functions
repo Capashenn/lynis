@@ -805,15 +805,26 @@
     # Name        : GetHostID()
     # Description : Create an unique id for the system
     #
-    # Returns     : optional value
+    # Returns     : 0 = fetched or created IDs, 1 = failed, 2 = skipped
     # Usage       : GetHostID
     ################################################################################
 
     GetHostID() {
 
+        if [ ${SKIP_GETHOSTID} -eq 1 ]; then
+            return 2
+        fi
+
         if [ ! -z "${HOSTID}" -a ! -z "${HOSTID2}" ]; then
             Debug "Skipping creation of host identifiers, as they are already configured (via profile)"
-            return 1
+            return 2
+        fi
+
+        if [ -f "${ROOTDIR}etc/lynis/hostids" ]; then
+            Debug "Used hostids file to fetch values"
+            HOSTID=$(grep "^hostid=" ${ROOTDIR}etc/lynis/hostids | awk -F= '{print $2}')
+            HOSTID2=$(grep "^hostid2=" ${ROOTDIR}etc/lynis/hostids | awk -F= '{print $2}')
+            return 0
         fi
 
         FIND=""
@@ -1110,8 +1121,9 @@
         fi
 
         # Show an exception if no HostID could be created, to ensure each system (and scan) has one
-        if [ "${HOSTID}" = "" ]; then
+        if [ -z "${HOSTID}" ]; then
             ReportException "GetHostID" "No unique host identifier could be created."
+            return 1
         elif [ ! -z "${HOSTID2}" ]; then
             return 0
         fi
@@ -1284,7 +1296,8 @@
 
         if [ -z "${search}" ]; then ExitFatal "Missing process to search for when using IsRunning function"; fi
         RUNNING=0
-        if [ ! -z "${PGREPBINARY}" ]; then
+        # AIX does not fully support pgrep options, so using ps instead
+        if [ ! -z "${PGREPBINARY}" -a ! "${OS}" = "AIX" ]; then
             FIND=$(${PGREPBINARY} ${pgrep_options} "${search}" | ${TRBINARY} '\n' ' ')
         else
             if [ -z "${PSOPTIONS}" ]; then
@@ -1391,6 +1404,10 @@
         # 0 = no, 1 = yes, 2 = unknown
         ISVIRTUALMACHINE=2; VMTYPE="unknown"; VMFULLTYPE="Unknown"
         SHORT=""
+
+        if [ ${SKIP_VM_DETECTION} -eq 1 ]; then
+            return 2
+        fi
 
         # lxc environ detection
         if [ -z "${SHORT}" ]; then
@@ -1699,7 +1716,7 @@
 
     ################################################################################
     # Name        : PackageIsInstalled()
-    # Description : Add a separator to log file between sections, tests etc
+    # Description : Determines if a package is installed
     # Returns     : exit code
     # Notes       : this function is not used yet, but created in advance to allow
     #               the addition of support for all operating systems
@@ -1714,11 +1731,20 @@
             Fatal "Incorrect usage of PackageIsInstalled function"
         fi
 
-        if [ ! -z "${RPMBINARY}" ]; then
-            output=$(${RPMBINARY} --quiet -q ${package} 2> /dev/null)
+        if [ ! -z "${DNFBINARY}" ]; then
+            output=$(${DNFBINARY} --quiet --cacheonly --noplugins --assumeno info --installed ${package} > /dev/null 2>&1)
             exit_code=$?
         elif [ ! -z "${DPKGBINARY}" ]; then
-            output=$(${DPKGBINARY} -l ${package} 2> /dev/null)
+            output=$(${DPKGBINARY} -l ${package} 2> /dev/null | ${GREPBINARY} "^ii")
+            exit_code=$?
+        elif [ ! -z "${EQUERYBINARY}" ]; then
+            output=$(${EQUERYBINARY} --quiet ${package} > /dev/null 2>&1)
+            exit_code=$?  # 0=package installed, 3=package not installed
+        elif [ ! -z "${PKG_BINARY}" ]; then
+            output=$(${PKG_BINARY} -N info ${package} >/dev/null 2>&1)
+            exit_code=$?  # 0=package installed, 70=invalid package
+        elif [ ! -z "${RPMBINARY}" ]; then
+            output=$(${RPMBINARY} --quiet -q ${package} > /dev/null 2>&1)
             exit_code=$?
         elif [ ! -z "${ZYPPERBINARY}" ]; then
             output=$(${ZYPPERBINARY} --quiet --non-interactive search --installed -i ${PACKAGE} 2> /dev/null | grep "^i")

@@ -1,11 +1,38 @@
 # Lynis Changelog
 
-## Lynis 2.7.4 (not released yet)
+## Lynis 2.7.4 (2019-04-21)
+
+This is a bigger release than usual, including several new tests created by
+Capashenn (GitHub). It is a coincidence that it is released exactly one month
+after the previous version and on Easter. No easter eggs, only improvements!
+
+### Added
+- FILE-6324 - Discover XFS mount points
+- INSE-8000 - Installed inetd package
+- INSE-8100 - Installed xinetd package
+- INSE-8102 - Status of xinet daemon
+- INSE-8104 - xinetd configuration file
+- INSE-8106 - xinetd configuration for inactive daemon
+- INSE-8200 - Usage of TCP wrappers
+- INSE-8300 - Presence of rsh client
+- INSE-8302 - Presence of rsh server
+- Detect equery binary detection
+- New 'generate' command
 
 ### Changed
 - AUTH-9278 - Test LDAP in all PAM components on Red Hat and other systems
 - PKGS-7410 - Add support for DPKG-based systems to gather installed kernel packages
 - PKGS-7420 - Detect toolkit to automatically download and apply upgrades
+- PKGS-7328 - Added global Zypper option --non-interactive
+- PKGS-7330 - Added global Zypper option --non-interactive
+- PKGS-7386 - Only show warning when vulnerable packages were discovered
+- PKGS-7392 - Skip test for Zypper-based systems
+- Minor changes to improve text output, test descriptions, and logging
+- Changed CentOS identifiers in end-of-life database
+- AIX enhancement for IsRunning function
+- Extended PackageIsInstalled function
+- Improve text output on AIX systems
+- Corrected lsvg binary detection
 
 ---------------------------------------------------------------------------------
 

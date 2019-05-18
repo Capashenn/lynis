@@ -35,9 +35,9 @@
     PROGRAM_AUTHOR_CONTACT="lynis-dev@cisofy.com"
 
     # Version details
-    PROGRAM_RELEASE_DATE="2019-03-29"
-    PROGRAM_RELEASE_TIMESTAMP=1553157295
-    PROGRAM_RELEASE_TYPE="dev" # dev or final
+    PROGRAM_RELEASE_DATE="2019-04-21"
+    PROGRAM_RELEASE_TIMESTAMP=1555856327
+    PROGRAM_RELEASE_TYPE="final" # dev or final
     PROGRAM_VERSION="2.7.4"
 
     # Source, documentation and license
@@ -613,6 +613,9 @@ ${NORMAL}
         if [ ${EOL} -eq 1 ]; then
             echo "  End-of-life:               ${WARNING}YES${NORMAL}"
             ReportWarning "GEN-0010" "This version ${OS_VERSION} is marked end-of-life as of ${EOL_DATE}"
+        elif [ ${EOL} -eq 255 ]; then
+            # TODO - mark as item where community can provide help
+            LogText "Note: the end-of-life of '${OS_FULLNAME}' could not be checked. Entry missing in software-eol.db?"
         fi
 
         if [ ! -z "${OS_MODE}" ]; then echo "  Operating system mode:     ${OS_MODE}"; fi

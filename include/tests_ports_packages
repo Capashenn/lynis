@@ -344,7 +344,7 @@
         COUNT=0
         PACKAGE_AUDIT_TOOL_FOUND=1
         PACKAGE_AUDIT_TOOL="zypper"
-        FIND=$(${ZYPPERBINARY} -n se -t package -i | ${AWKBINARY} '{ if ($1=="i") { print $3 } }')
+        FIND=$(${ZYPPERBINARY} --non-interactive -n se -t package -i | ${AWKBINARY} '{ if ($1=="i") { print $3 } }')
         if [ ! -z "${FIND}" ]; then
             for PKG in ${FIND}; do
                 COUNT=$((COUNT + 1))
@@ -365,7 +365,7 @@
     if [ ! -z "${ZYPPERBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
     Register --test-no PKGS-7330 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Querying Zypper for vulnerable packages"
     if [ ${SKIPTEST} -eq 0 ]; then
-        FIND=$(${ZYPPERBINARY} -n pchk | ${GREPBINARY} "(0 security patches)")
+        FIND=$(${ZYPPERBINARY} --non-interactive pchk | ${GREPBINARY} "(0 security patches)")
         if [ ! -z "${FIND}" ]; then
             LogText "Result: No security updates found with Zypper"
             Display --indent 2 --text "- Using Zypper to find vulnerable packages" --result "${STATUS_NONE}" --color GREEN
@@ -374,7 +374,7 @@
             LogText "Result: Zypper found one or more installed packages which are vulnerable."
             ReportWarning ${TEST_NO} "Found one or more vulnerable packages installed"
             # Unfortunately zypper does not properly give back which package it is. Usually best guess is last word on the line
-            FIND=$(${ZYPPERBINARY} -n lp | ${AWKBINARY} '{ if ($5=="security" || $7=="security") { print $NF }}' | ${SEDBINARY} 's/:$//' | ${GREPBINARY} -v "^$" | ${SORTBINARY} -u)
+            FIND=$(${ZYPPERBINARY} --non-interactive lp | ${AWKBINARY} '{ if ($5=="security" || $7=="security") { print $NF }}' | ${SEDBINARY} 's/:$//' | ${GREPBINARY} -v "^$" | ${SORTBINARY} -u)
             LogText "List of vulnerable packages/version:"
             for PKG in ${FIND}; do
                 VULNERABLE_PACKAGES_FOUND=1
@@ -930,7 +930,6 @@
                     AddHP 1 2
                 done
                 ReportWarning ${TEST_NO} "Found one or more vulnerable packages."
-                ReportSuggestion ${TEST_NO} "Use 'yum --security update' to update your system"
             fi
         else
             LogText "Result: yum-security package not found"
@@ -1055,7 +1054,8 @@
 #
     # Test        : PKGS-7392
     # Description : Check Debian/Ubuntu vulnerable packages
-    if [ -x ${ROOTDIR}usr/bin/apt-get ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
+    # Note        : Skip for zypper-based systems
+    if [ -x ${ROOTDIR}usr/bin/apt-get -a -z "${ZYPPERBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
     Register --test-no PKGS-7392 --os Linux --preqs-met ${PREQS_MET} --root-only YES --weight L --network YES --category security --description "Check for Debian/Ubuntu security updates"
     if [ ${SKIPTEST} -eq 0 ]; then
         VULNERABLE_PACKAGES_FOUND=0
@@ -1339,13 +1339,6 @@
 #
 #################################################################################
 #
-
-
-if [ ! -z "${INSTALLED_PACKAGES}" ]; then Report "installed_packages_array=${INSTALLED_PACKAGES}"; fi
-
-Report "package_audit_tool=${PACKAGE_AUDIT_TOOL}"
-Report "package_audit_tool_found=${PACKAGE_AUDIT_TOOL_FOUND}"
-Report "vulnerable_packages_found=${VULNERABLE_PACKAGES_FOUND}"
 
 WaitForKeyPress
 
