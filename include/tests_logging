@@ -350,12 +350,15 @@
     if [ ${SKIPTEST} -eq 0 ]; then
         if [ ${SYSLOG_NG_RUNNING} -eq 1 ]; then
             SYSLOGD_CONF="/etc/syslog-ng/syslog-ng.conf"
+        elif [ ${RSYSLOG_RUNNING} -eq 1 ]; then
+            SYSLOGD_CONF="/etc/rsyslog.conf"
+            SYSLOGD_CONF_FILES=$(ls /etc/rsyslog.d/*.conf 2> /dev/null)
         else
             SYSLOGD_CONF="/etc/syslog.conf"
         fi
         if [ -f ${SYSLOGD_CONF} ]; then
             LogText "Test: check if logs are also logged to a remote logging host"
-            FIND=$(${EGREPBINARY} "@[a-zA-Z0-9]|destination\s.+(udp|tcp).+\sport" ${SYSLOGD_CONF} | ${GREPBINARY} -v "^#" | ${GREPBINARY} -v "[a-zA-Z0-9]@")
+            FIND=$(${EGREPBINARY} -h "@[a-zA-Z0-9]|destination\s[\s\S]+(?:udp|tcp).+\sport" ${SYSLOGD_CONF} ${SYSLOGD_CONF_FILES} | ${GREPBINARY} -v "^#" | ${GREPBINARY} -v "[a-zA-Z0-9]@")
             if [ ! -z "${FIND}" ]; then
                 LogText "Result: remote logging enabled"
                 REMOTE_LOGGING_ENABLED=1
