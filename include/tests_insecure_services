@@ -144,7 +144,7 @@
             ReportSuggestion ${TEST_NO} "If there are no xinetd services required, it is recommended that the daemon be removed"
         else
             LogText "Result: xinetd is NOT installed"
-            Display --indent 2 --text "- Installed xinetd package" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed xinetd package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -280,10 +280,10 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: tcp_wrappers is installed"
-            Display --indent 2 --text "- Checking tcp_wrappers installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed tcp_wrappers package" --result "${STATUS_FOUND}" --color GREEN
         else
             LogText "Result: tcp_wrappers is NOT installed"
-            Display --indent 2 --text "- Checking tcp_wrappers installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed tcp_wrappers package" --result "${STATUS_NOT_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "When network services are using the inetd/xinetd service, the tcp_wrappers package should be installed"
         fi
     fi
@@ -302,11 +302,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: rsh client is installed"
-            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "Remove rsh client when it is not in use or replace with the more secure SSH package"
         else
             LogText "Result: rsh client is NOT installed"
-            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -359,12 +359,12 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: rsh server is installed"
-            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "Remove the rsh-server package and replace with a more secure alternative like SSH"
             Report "insecure_service[]=rsh-server"
         else
             LogText "Result: rsh server is NOT installed"
-            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -383,7 +383,7 @@
             ReportSuggestion ${TEST_NO} "telnet client contain numerous security exposures and have been replaced with the more secure SSH package"
         else
             LogText "Result: telnet client is NOT installed"
-            Display --indent 2 --text "- Installed telnet client package" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed telnet client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -426,11 +426,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: NIS client is installed"
-            Display --indent 2 --text "- Checking NIS client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed NIS client package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "NIS client should be removed as it contains numerous security exposures and have been replaced with the more secure SSH package"
         else
             LogText "Result: NIS client is NOT installed"
-            Display --indent 2 --text "- Checking NIS client installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed NIS client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -449,11 +449,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: NIS server is installed"
-            Display --indent 2 --text "- Checking NIS server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of NIS or NIS+ services"
+            Display --indent 2 --text "- Installed NIS server package" --result "${STATUS_FOUND}" --color YELLOW
+            ReportSuggestion ${TEST_NO} "Removing the NIS server package decreases the risk of the accidental (or intentional) activation of NIS or NIS+ services"
         else
             LogText "Result: NIS server is NOT installed"
-            Display --indent 2 --text "- Checking NIS server installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed NIS server package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -472,11 +472,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: TFTP client is installed"
-            Display --indent 2 --text "- Checking TFTP client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed TFTP client package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "It is recommended that TFTP be removed, unless there is a specific need for TFTP (such as a boot server)"
         else
             LogText "Result: TFTP client is NOT installed"
-            Display --indent 2 --text "- Checking TFTP client installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed TFTP client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -495,11 +495,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: TFTP server is NOT installed"
-            Display --indent 2 --text "- Checking TFTP server installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_FOUND}" --color GREEN
         else
             LogText "Result: TFTP server is installed"
-            Display --indent 2 --text "- Checking TFTP server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of tftp services"
+            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_NOT_FOUND}" --color YELLOW
+            ReportSuggestion ${TEST_NO} "Removing the TFTP server package decreases the risk of the accidental (or intentional) activation of tftp services"
         fi
     fi
 #
@@ -513,11 +513,11 @@
         LogText "Test: Checking if talk client is installed"
         if PackageIsInstalled "talk"; then
             LogText "Result: talk client is installed"
-            Display --indent 2 --text "- Checking talk client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed talk client package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "Removing the talk package decreases the risk of the accidental (or intentional) activation of talk client program"
         else
             LogText "Result: talk client is NOT installed"
-            Display --indent 2 --text "- Checking talk client installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed talk client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -536,11 +536,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: talk server is installed"
-            Display --indent 2 --text "- Checking talk server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed talk server package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of talk services"
         else
             LogText "Result: talk server is NOT installed"
-            Display --indent 2 --text "- Checking talk server installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed talk server package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -559,11 +559,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: LDAP client is installed"
-            Display --indent 2 --text "- Checking LDAP client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed LDAP client package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "If the system will not need to act as an LDAP client, it is recommended that the software be removed to reduce the potential attack surface"
         else
             LogText "Result: LDAP client is NOT installed"
-            Display --indent 2 --text "- Checking LDAP client installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed LDAP client package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
@@ -582,11 +582,11 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: LDAP server is installed"
-            Display --indent 2 --text "- Checking LDAP server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
+            Display --indent 2 --text "- Installed LDAP server package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "The ${FOUND} package should be removed if not in use to decrease the attack surface of the system"
         else
             LogText "Result: LDAP server is NOT installed"
-            Display --indent 2 --text "- Checking LDAP server installation" --result "${STATUS_OK}" --color GREEN
+            Display --indent 2 --text "- Installed LDAP server package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
