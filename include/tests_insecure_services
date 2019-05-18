@@ -494,12 +494,12 @@
             if PackageIsInstalled "${PACKAGE}"; then LogText "Package '${PACKAGE}' is installed"; FOUND=1; fi
         done
         if [ ${FOUND} -eq 1 ]; then
-            LogText "Result: TFTP server is NOT installed"
-            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_FOUND}" --color GREEN
-        else
             LogText "Result: TFTP server is installed"
-            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_NOT_FOUND}" --color YELLOW
+            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_FOUND}" --color YELLOW
             ReportSuggestion ${TEST_NO} "Removing the TFTP server package decreases the risk of the accidental (or intentional) activation of tftp services"
+        else
+            LogText "Result: TFTP server is NOT installed"
+            Display --indent 2 --text "- Installed TFTP server package" --result "${STATUS_NOT_FOUND}" --color GREEN
         fi
     fi
 #
