@@ -12,13 +12,13 @@
 # CentOS - https://en.wikipedia.org/wiki/CentOS#End-of-support_schedule
 #
 os:CentOS.* 3.*:2010-10-31:1288476000:
-os:CentOS Linux release 3:2010-10-31:1288476000:
+os:CentOS release 3:2010-10-31:1288476000:
 os:CentOS.* 4.*:2012-02-29:1330470000:
-os:CentOS Linux release 4:2012-02-29:1330470000:
+os:CentOS release 4:2012-02-29:1330470000:
 os:CentOS.* 5.*:2017-03-31:1490911200:
-os:CentOS Linux release 5:2017-03-31:1490911200:
+os:CentOS release 5:2017-03-31:1490911200:
 os:CentOS.* 6.*:2020-11-30:1606690800:
-os:CentOS Linux release 6:2020-11-30:1606690800:
+os:CentOS release 6:2020-11-30:1606690800:
 os:CentOS.* 7.*:2024-06-30:1719698400:
 os:CentOS Linux release 7:2024-06-30:1719698400:
 #
