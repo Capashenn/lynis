@@ -113,6 +113,7 @@
                             base64)                 BASE64BINARY="${BINARY}";          LogText "  Found known binary: base64 (encoding tool) - ${BINARY}" ;;
                             blkid)                  BLKIDBINARY="${BINARY}";           LogText "  Found known binary: blkid (information about block devices) - ${BINARY}" ;;
                             bootctl)                BOOTCTLBINARY="${BINARY}";         LogText "  Found known binary: bootctl (systemd-boot manager utility) - ${BINARY}" ;;
+                            bro)                    BROBINARY="${BINARY}";             LogText "  Found known binary: bro (IDS) - ${BINARY}" ;;
                             cat)                    CAT_BINARY="${BINARY}";            LogText "  Found known binary: cat (generic file handling) - ${BINARY}" ;;
                             cc)                     CCBINARY="${BINARY}";              COMPILER_INSTALLED=1;  LogText "  Found known binary: cc (compiler) - ${BINARY}" ;;
                             chkconfig)              CHKCONFIGBINARY=${BINARY};         LogText "  Found known binary: chkconfig (administration tool) - ${BINARY}" ;;
@@ -230,6 +231,7 @@
                             sha1|sha1sum|shasum)    SHA1SUMBINARY="${BINARY}";         LogText "  Found known binary: sha1/sha1sum/shasum (crypto hashing) - ${BINARY}" ;;
                             sha256|sha256sum)       SHA256SUMBINARY="${BINARY}";       LogText "  Found known binary: sha256/sha256sum (crypto hashing) - ${BINARY}" ;;
                             ssh-keyscan)            SSHKEYSCANBINARY="${BINARY}";      LogText "  Found known binary: ssh-keyscan (scanner for SSH keys) - ${BINARY}" ;;
+                            suricata)               SURICATABINARY="${BINARY}";        LogText "  Found known binary: suricata (IDS) - ${BINARY}" ;;
                             sysctl)                 SYSCTLBINARY="${BINARY}";          LogText "  Found known binary: sysctl (kernel parameters) - ${BINARY}" ;;
                             syslog-ng)              SYSLOGNGBINARY="${BINARY}";        SYSLOGNGVERSION=$(${BINARY} -V 2>&1 | grep "^syslog-ng" | awk '{ print $2 }'); LogText "Found ${BINARY} (version ${SYSLOGNGVERSION})" ;;
                             systemctl)              SYSTEMCTLBINARY="${BINARY}";       LogText "  Found known binary: systemctl (client to systemd) - ${BINARY}" ;;
