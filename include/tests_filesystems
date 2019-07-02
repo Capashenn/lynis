@@ -135,6 +135,33 @@
             Display --indent 4 --text "- Checking LVM volumes" --result "${STATUS_NONE}" --color WHITE
         fi
     fi
+#                                                                                                                                         
+#################################################################################                                                         
+#                                                                                                                                         
+    # Test        : FILE-6314                                                                                                             
+    # Description : Checking LUKS encrypted disks and partitions                                                                                            
+    if [ ! -z "${CRYPSETUPBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi                                                           
+    Register --test-no FILE-6314 --preqs-met ${PREQS_MET} --weight L --network NO --description "Checking LUKS encrypted disks and partitions" --progress    
+    if [ ${SKIPTEST} -eq 0 ]; then                                                                                                        
+        LogText "Test: Checking for LUKS encrypted disks and partitions"
+        FIND=$(tail -n +3 /proc/partitions | ${AWKBINARY} '{print $4}')
+        ENCRYPTION=0                                                     
+        if [ ! -z "${FIND}" ]; then                                                                                                       
+            for I in ${FIND}; do                                                                                                          
+                if [ $(${CRYPTSETUPBINARY} isLuks /dev/${I} 2> /dev/null) -eq 0 ]; then
+                    LogText "Result: ${I} is encrypted"
+                    ENCRYPTION=1
+                fi
+            done  
+            if [${ENCRYPTION} -eq 1]; then
+                LogText "Result: found one or more LUKS encrypted disks or partitions"
+                Display --indent 4 --text "- Checking LUKS encrypted disks and partitions" --result "${STATUS_FOUND}" --color GREEN
+            else
+                LogText "Result: no LUKS encrypted disks or partitions found"
+                Display --indent 4 --text "- Checking LUKS encrypted disks and partitions" --result "${STATUS_NOT_FOUND}" --color RED
+            fi                                                                                                                            
+        fi                                                                                                                                
+    fi                                                                                                                                        
 #
 #################################################################################
 #
