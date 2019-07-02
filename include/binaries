@@ -123,7 +123,7 @@
                             cfagent)                CFAGENTBINARY="${BINARY}";         FILE_INT_TOOL_FOUND=1;                 LogText "  Found known binary: cfengine agent (configuration tool) - ${BINARY}" ;;
                             chkrootkit)             CHKROOTKITBINARY="${BINARY}";      MALWARE_SCANNER_INSTALLED=1;           LogText "  Found known binary: chkrootkit (malware scanner) - ${BINARY}" ;;
                             comm)                   COMMBINARY="${BINARY}";            LogText "  Found known binary: comm (file compare) - ${BINARY}" ;;
-                            crypsetup)              CRYPSETUPBINARY="${BINARY}";       LogText "  Found known binary: cryptsetup (disk encryption tool) - ${BINARY}" ;;
+                            cryptsetup)             CRYPTSETUPBINARY="${BINARY}";      LogText "  Found known binary: cryptsetup (disk encryption tool) - ${BINARY}" ;;
                             csum)                   CSUMBINARY="${BINARY}";            LogText "  Found known binary: csum (hashing tool on AIX) - ${BINARY}" ;;
                             curl)                   CURLBINARY="${BINARY}";            CURLVERSION=$(${BINARY} --version | grep "^curl" | awk '{ if ($1=="curl") { print $2 }}'); LogText "  Found known binary: curl (browser, download utility) - ${BINARY}" ;;
                             cut)                    CUTBINARY="${BINARY}";             LogText "  Found known binary: cut (text stream editor) - ${BINARY}" ;;
