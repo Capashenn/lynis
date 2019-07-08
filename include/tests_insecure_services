@@ -193,7 +193,7 @@
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check if any service is enabled in /etc/xinetd.d (xinetd is not active, see test INSE-8102)
         LogText "Test: check if all services are disabled if xinetd is disabled"
-        FIND=$(${GREPBINARY} -r "disable\s*=\s*no" ${XINETD_CONFIG_DIR})
+        FIND=$(${GREPBINARY} -r "^[[:space:]]*disable[[:space:]]*=[[:space:]]*no" ${XINETD_CONFIG_DIR})
         if [ -z "${FIND}" ]; then
             LogText "Result: no services found in ${XINETD_CONFIG_DIR}"
             Display --indent 6 --text "- Enabled xinetd.d services" --result "${STATUS_NOT_FOUND}" --color GREEN
@@ -221,7 +221,7 @@
                 FILE="${XINETD_CONFIG_DIR}/${SERVICE}"
                 if [ -f "${FILE}" ]; then
                     LogText "Test: checking status in xinetd configuration file (${FILE})"
-                    FIND=$(${GREPBINARY} "disable\s*=\s*no" ${FILE})
+                    FIND=$(${GREPBINARY} "^[[:space:]]*disable[[:space:]]*=[[:space:]]*no" ${FILE})
                     if [ ! -z "${FIND}" ]; then
                         LogText "Result: found insecure service enabled: ${SERVICE}"
                         XINETD_INSECURE_SERVICE_FOUND=1
@@ -254,7 +254,7 @@
     #Register --test-no INSE-8150 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check for rsync via xinetd"
     #if [ ${SKIPTEST} -eq 0 ]; then
     #    LogText "Test: checking rsync presence in xinetd configuration"
-    #    FIND=$(${GREPBINARY} "disable\s*=\s*no" ${RSYNC_XINETD_CONFIG_FILE})
+    #    FIND=$(${GREPBINARY} "^[[:space:]]*disable[[:space:]]*=[[:space:]]*no" ${RSYNC_XINETD_CONFIG_FILE})
     #    if [ "${FIND}" = "" ]; then
     #        LogText "Result: rsync not enabled in ${RSYNC_XINETD_CONFIG_FILE}"
     #        Display --indent 6 --text "- Checking xinetd (rsync)" --result "${STATUS_DISABLED}" --color GREEN
