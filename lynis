@@ -938,11 +938,10 @@ ${NORMAL}
 
             INCLUDE_TESTS="accounting authentication banners boot_services containers crypto \
                            databases dns filesystems file_permissions file_integrity firewalls \
-                           homedirs hardening insecure_services kernel kernel_hardening ldap \
-                           logging mac_frameworks mail_messaging malware nameservices networking \
+                           homedirs hardening webservers insecure_services kernel kernel_hardening \
+                           ldap logging mac_frameworks mail_messaging malware nameservices networking \
                             php ports_packages printers_spools memory_processes scheduling shells \
-                           snmp squid ssh usb storage storage_nfs time tooling virtualization   \
-                           webservers"
+                           snmp squid ssh usb storage storage_nfs time tooling virtualization"
         else
             INCLUDE_TESTS="${TEST_GROUP_TO_CHECK}"
             LogText "Info: only performing tests from groups: ${TEST_GROUP_TO_CHECK}"
