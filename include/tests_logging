@@ -358,7 +358,7 @@
         fi
         if [ -f ${SYSLOGD_CONF} ]; then
             LogText "Test: check if logs are also logged to a remote logging host"
-            FIND=$(${EGREPBINARY} -h "@[a-zA-Z0-9]|destination\s[\s\S]+(?:udp|tcp).+\sport" ${SYSLOGD_CONF} ${SYSLOGD_CONF_FILES} | ${GREPBINARY} -v "^#" | ${GREPBINARY} -v "[a-zA-Z0-9]@")
+            FIND=$(${EGREPBINARY} -h "@[a-zA-Z0-9]|destination[[:space:]][[[:space:]][^[:space:]]]+(?:udp|tcp).+[[:space:]]port" ${SYSLOGD_CONF} ${SYSLOGD_CONF_FILES} | ${GREPBINARY} -v "^#" | ${GREPBINARY} -v "[a-zA-Z0-9]@")
             if [ ! -z "${FIND}" ]; then
                 LogText "Result: remote logging enabled"
                 REMOTE_LOGGING_ENABLED=1
