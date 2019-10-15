@@ -330,8 +330,8 @@
                     done
                 fi
         done
-        if [ -f /etc/hosts.equiv ];then
-            LogText "FOUND /etc/hosts.equiv"
+        if [ -s /etc/hosts.equiv ];then
+            LogText "FOUND non empty /etc/hosts.equiv"
             FOUND=1
         fi
         if [ ${FOUND} -eq 1 ]; then
