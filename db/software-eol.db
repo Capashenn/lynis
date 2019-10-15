@@ -9,6 +9,15 @@
 #
 # Date can be converted on Linux using: date "+%s" --date=2020-01-01
 #
+# Amazon Linux
+#
+os:Amazon Linux:2020-06-30:1593468000:
+os:Amazon Linux 2:2023-06-26:1687730400:
+#
+# Arch Linux
+#
+os:Arch Linux:2286-11-20:9999999999:
+#
 # CentOS - https://en.wikipedia.org/wiki/CentOS#End-of-support_schedule
 #
 os:CentOS.* 3.*:2010-10-31:1288476000:
@@ -139,10 +148,10 @@ os:Ubuntu 16.10:2017-07-01:1498860000:
 os:Ubuntu 17.04:2018-01-01:1514761200:
 os:Ubuntu 17.10:2018-07-01:1530396000:
 os:Ubuntu 18.04:2023-05-01:1682892000:
-os:Ubuntu 18.10:2019-07-01:1561932000:
+os:Ubuntu 18.10:2019-07-18:1563400800:
 os:Ubuntu 19.04:2020-01-01:1577833200:
 #
-# Debian - https://en.wikipedia.org/wiki/Debian_version_history
+# Debian - https://wiki.debian.org/DebianReleases#Production_Releases
 #
 os:Debian.* 3.0.*:2006-06-30:1151618400:
 os:Debian 3.0:2006-06-30:1151618400:
@@ -160,6 +169,8 @@ os:Debian.* 8.*:2020-06-30:1593468000:
 os:Debian 8:2020-06-30:1593468000:
 os:Debian.* 9.*:2022-06-30:1656540000:
 os:Debian 9:2022-06-30:1656540000:
+os:Debian 10:2022-01-01:1640991600:
+os:Debian.* 10.*:2022-01-01:1640991600:
 #
 # Slackware - https://en.wikipedia.org/wiki/Slackware#Releases
 #

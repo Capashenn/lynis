@@ -183,7 +183,7 @@
     # Description : Check if Linux is build as a monolithic kernel or not
     Register --test-no KRNL-5723 --os Linux --weight L --network NO --category security --description "Determining if Linux kernel is monolithic"
     if [ ${SKIPTEST} -eq 0 ]; then
-        if [ ! -z "${LSMODBINARY}" -a -f /proc/modules ]; then
+        if [ -n "${LSMODBINARY}" -a -f /proc/modules ]; then
             LogText "Test: checking if kernel is monolithic or modular"
             # Checking if any modules are loaded
             FIND=$(${LSMODBINARY} | ${GREPBINARY} -v "^Module" | wc -l | ${TRBINARY} -s ' ' | ${TRBINARY} -d ' ')
@@ -208,7 +208,7 @@
     # Description : Checking Linux loaded kernel modules
     Register --test-no KRNL-5726 --os Linux --weight L --network NO --category security --description "Checking Linux loaded kernel modules"
     if [ ${SKIPTEST} -eq 0 ]; then
-        if [ ! -z "${LSMODBINARY}" -a -f /proc/modules ]; then
+        if [ -n "${LSMODBINARY}" -a -f /proc/modules ]; then
             FIND=$(${LSMODBINARY} | ${AWKBINARY} '{ if ($1!="Module") print $1 }' | sort)
             Display --indent 2 --text "- Checking loaded kernel modules" --result "${STATUS_DONE}" --color GREEN
             if HasData "${FIND}"; then
@@ -235,18 +235,18 @@
     # Description : Checking for available Linux kernel configuration file in /boot
     Register --test-no KRNL-5728 --os Linux --weight L --network NO --category security --description "Checking Linux kernel config"
     if [ ${SKIPTEST} -eq 0 ]; then
-        CHECKFILE="/boot/config-$(uname -r)"
+        CHECKFILE="${ROOTDIR}boot/config-$(uname -r)"
         if [ -f ${CHECKFILE} ]; then
             LINUXCONFIGFILE="${CHECKFILE}"
             LogText "Result: found config (${LINUXCONFIGFILE})"
             Display --indent 2 --text "- Checking Linux kernel configuration file" --result "${STATUS_FOUND}" --color GREEN
-        elif [ -f /proc/config.gz ]; then
+        elif [ -f ${ROOTDIR}proc/config.gz ]; then
             LINUXCONFIGFILE="${CHECKFILE}"
             LINUXCONFIGFILE_ZIPPED=1
-            LogText "Result: found config: /proc/config.gz (compressed)"
+            LogText "Result: found config: ${ROOTDIR}proc/config.gz (compressed)"
             Display --indent 2 --text "- Checking Linux kernel configuration file" --result "${STATUS_FOUND}" --color GREEN
         else
-            LogText "Result: no Linux kernel configuration file found in /boot"
+            LogText "Result: no Linux kernel configuration file found in ${ROOTDIR}boot"
             Display --indent 2 --text "- Checking Linux kernel configuration file" --result "${STATUS_NOT_FOUND}" --color WHITE
         fi
         if HasData "${LINUXCONFIGFILE}"; then
@@ -267,15 +267,15 @@
     Register --test-no KRNL-5730 --os Linux --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Checking disk I/O kernel scheduler"
     if [ ${SKIPTEST} -eq 0 ]; then
         if [ ${LINUXCONFIGFILE_ZIPPED} -eq 1 ]; then GREPTOOL="${ZGREPBINARY}"; else GREPTOOL="${GREPBINARY}"; fi
-        if [ ! "${GREPTOOL}" = "" ]; then
+        if [ -n "${GREPTOOL}" ]; then
             LogText "Test: Checking the default I/O kernel scheduler"
             LINUX_KERNEL_IOSCHED=$(${GREPTOOL} "CONFIG_DEFAULT_IOSCHED" ${LINUXCONFIGFILE} | ${AWKBINARY} -F= '{ print $2 }' | ${SEDBINARY} s/\"//g)
-            if [ ! "${LINUX_KERNEL_IOSCHED}" = "" ]; then
+            if [ -n "${LINUX_KERNEL_IOSCHED}" ]; then
                 LogText "Result: found IO scheduler '${LINUX_KERNEL_IOSCHED}'"
                 Display --indent 2 --text "- Checking default I/O kernel scheduler" --result "${STATUS_FOUND}" --color GREEN
                 Report "linux_kernel_io_scheduler[]=${LINUX_KERNEL_IOSCHED}"
             else
-                LogText "Result: no default i/o kernel scheduler found"
+                LogText "Result: no default I/O kernel scheduler found"
                 Display --indent 2 --text "- Checking default I/O kernel scheduler" --result "${STATUS_NOT_FOUND}" --color WHITE
             fi
         else
@@ -323,8 +323,8 @@
         LogText "Test: Active kernel modules (KLDs)"
         LogText "Description: View all active kernel modules (including kernel)"
         LogText "Test: Checking modules"
-        if [ -f ${ROOTDIR}sbin/kldstat ]; then
-            FIND=$(${ROOTDIR}sbin/kldstat | ${GREPBINARY} -v 'Name' | ${TRBINARY} -s ' ' | ${CUTBINARY} -d ' ' -f6)
+        if [ -x /sbin/kldstat ]; then
+            FIND=$(/sbin/kldstat | ${GREPBINARY} -v 'Name' | ${TRBINARY} -s ' ' | ${CUTBINARY} -d ' ' -f6)
             if [ $? -eq 0 ]; then
                 LogText "Loaded modules according kldstat:"
                 COUNT=0
@@ -340,7 +340,7 @@
             fi
         else
             echo "[ ${WHITE}SKIPPED${NORMAL} ]"
-            LogText "Result: no results, can NOT find ${ROOTDIR}sbin/kldstat"
+            LogText "Result: no results, can NOT find /sbin/kldstat"
         fi
     fi
 #
@@ -438,12 +438,12 @@
     Register --test-no KRNL-5820 --os Linux --weight L --network NO --category security --description "Checking core dumps configuration"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Limits option
-        LogText "Test: Checking presence /etc/security/limits.conf"
-        if [ -f /etc/security/limits.conf ]; then
-            LogText "Result: file /etc/security/limits.conf exists"
-            LogText "Test: Checking if core dumps are disabled in /etc/security/limits.conf and /etc/security/limits.d/*"
-            FIND1=$(${GREPBINARY} -r -v "^#" /etc/security/limits.conf ${LIMITS_DIRECTORY} | ${AWKBINARY} -F ":" '{print $2}' | ${GREPBINARY} -v "^$" | ${AWKBINARY} '{ if ($1=="*" && $2=="soft" && $3=="core" && $4=="0") { print "soft core disabled" } else if ($1=="*" && $2=="soft" && $3=="core" && $4!="0") { print "soft core enabled" } }')
-            FIND2=$(${GREPBINARY} -r -v "^#" /etc/security/limits.conf ${LIMITS_DIRECTORY} | ${AWKBINARY} -F ":" '{print $2}' | ${GREPBINARY} -v "^$" | ${AWKBINARY} '{ if ($1=="*" && $2=="hard" && $3=="core" && $4=="0") { print "hard core disabled" } else if ($1=="*" && $2=="hard" && $3=="core" && $4!="0") { print "hard core enabled" } }')
+        LogText "Test: Checking presence ${ROOTDIR}etc/security/limits.conf"
+        if [ -f ${ROOTDIR}etc/security/limits.conf ]; then
+            LogText "Result: file ${ROOTDIR}etc/security/limits.conf exists"
+            LogText "Test: Checking if core dumps are disabled in ${ROOTDIR}etc/security/limits.conf and ${ROOTDIR}etc/security/limits.d/*"
+            FIND1=$(${GREPBINARY} -r -v "^#" ${ROOTDIR}etc/security/limits.conf ${LIMITS_DIRECTORY} | ${AWKBINARY} -F ":" '{print $2}' | ${GREPBINARY} -v "^$" | ${AWKBINARY} '{ if ($1=="*" && $2=="soft" && $3=="core" && $4=="0") { print "soft core disabled" } else if ($1=="*" && $2=="soft" && $3=="core" && $4!="0") { print "soft core enabled" } }')
+            FIND2=$(${GREPBINARY} -r -v "^#" ${ROOTDIR}etc/security/limits.conf ${LIMITS_DIRECTORY} | ${AWKBINARY} -F ":" '{print $2}' | ${GREPBINARY} -v "^$" | ${AWKBINARY} '{ if ($1=="*" && $2=="hard" && $3=="core" && $4=="0") { print "hard core disabled" } else if ($1=="*" && $2=="hard" && $3=="core" && $4!="0") { print "hard core enabled" } }')
             if [ "${FIND2}" = "hard core disabled" ]; then
                 LogText "Result: core dumps (soft and hard) are both disabled"
                 Display --indent 2 --text "- Checking core dumps configuration" --result "${STATUS_DISABLED}" --color GREEN
@@ -461,7 +461,7 @@
                 AddHP 2 3
             fi
         else
-            LogText "Result: file /etc/security/limits.conf does not exist, skipping test"
+            LogText "Result: file ${ROOTDIR}etc/security/limits.conf does not exist, skipping test"
         fi
         # TODO: Check ulimit settings in /etc/profile and /etc/profile.d
 
@@ -488,13 +488,6 @@
             AddHP 1 1
         fi
     fi
-#
-#################################################################################
-#
-    # Test        : KRNL-5826
-    # Description : Checking core dumps configuration (Solaris)
-    #Register --test-no KRNL-5826 --os Linux --weight L --network NO --category security --description "Checking core dumps configuration"
-    #if [ ${SKIPTEST} -eq 0 ]; then
 #
 #################################################################################
 #
@@ -526,7 +519,7 @@
         if [ -d ${ROOTDIR}boot ]; then
             LogText "Result: /boot exists, performing more tests from here"
             FIND=$(${LSBINARY} ${ROOTDIR}boot/* 2> /dev/null)
-            if [ ! -z "${FIND}" ]; then
+            if [ -n "${FIND}" ]; then
                 if [ -f ${ROOTDIR}boot/vmlinuz -a ! -L ${ROOTDIR}boot/vmlinuz ]; then
                     LogText "Result: found /boot/vmlinuz (not symlinked)"
                     NEXTLINE=0
@@ -539,7 +532,7 @@
                             if [ "${I}" = "version" ]; then NEXTLINE=1; fi
                         fi
                     done
-                    if [ ! -z "${FINDVERSION}" ]; then
+                    if [ -n "${FINDVERSION}" ]; then
                         CURRENT_KERNEL=$(uname -r)
                         if [ ! "${CURRENT_KERNEL}" = "${FINDVERSION}" ]; then
                             LogText "Result: reboot needed, as current kernel is different than the one loaded"
@@ -552,7 +545,7 @@
                     LogText "Result: /found /boot/vmlinuz-linux (usually Arch Linux or similar)"
                     LogText "Test: checking kernel version on disk"
                     VERSION_ON_DISK=$(${FILEBINARY} -b ${ROOTDIR}boot/vmlinuz-linux | ${AWKBINARY} '{ if ($1=="Linux" && $7=="version") { print $8 }}')
-                    if [ ! -z "${VERSION_ON_DISK}" ]; then
+                    if [ -n "${VERSION_ON_DISK}" ]; then
                         LogText "Result: found version ${VERSION_ON_DISK}"
                         ACTIVE_KERNEL=$(uname -r)
                         LogText "Result: active kernel version ${ACTIVE_KERNEL}"
@@ -577,7 +570,7 @@
                     MYKERNEL=$(${UNAMEBINARY} -r | ${SEDBINARY} 's/\.[a-z].*.//g' | ${SEDBINARY} 's/-[a-z].*.//g' | ${SEDBINARY} 's/-/./g')
                     LogText "Result: using ${MYKERNEL} as my kernel version (stripped)"
                     FIND=$(ls ${ROOTDIR}boot/vmlinuz* 2> /dev/null)
-                    if [ ! -z "${FIND}" ]; then
+                    if [ -n "${FIND}" ]; then
                         for ITEM in ${FIND}; do
                             LogText "Result: found ${ITEM}"
                         done
@@ -593,11 +586,11 @@
                         # Examples:
                         # /boot/kernel-genkernel-x86_64-3.14.14-gentoo
                         KERNELS=$(${LSBINARY} ${ROOTDIR}boot/kernel* | ${AWKBINARY} -F- '{ if ($2=="genkernel") { print $4 }}' | ${GREPBINARY} "^[0-9]" | ${SORTBINARY} -n -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 -k6,6 -t \.)
-                        if [ ! -z "${KERNELS}" ]; then LogText "Output: ${KERNELS}"; fi
+                        if [ -n "${KERNELS}" ]; then LogText "Output: ${KERNELS}"; fi
                     else
                         ReportException "${TEST_NO}:2" "Can not find any vmlinuz or kernel files in /boot, which is unexpected"
                     fi
-                    if [ ! -z "${KERNELS}" ]; then
+                    if [ -n "${KERNELS}" ]; then
                         FOUND_KERNEL=0
                         for I in ${KERNELS}; do
                             # Check if we already found a kernel and it is not equal to what we run (e.g. double versions may exist)

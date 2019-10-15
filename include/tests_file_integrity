@@ -35,7 +35,7 @@
     Register --test-no FINT-4310 --weight L --network NO --category security --description "AFICK availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking AFICK binary"
-        if [ ! -z "${AFICKBINARY}" ]; then
+        if [ -n "${AFICKBINARY}" ]; then
             LogText "Result: AFICK is installed (${AFICKBINARY})"
             Report "file_integrity_tool[]=afick"
             FILE_INT_TOOL="afick"
@@ -54,7 +54,7 @@
     Register --test-no FINT-4314 --weight L --network NO --category security --description "AIDE availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking AIDE binary"
-        if [ ! -z "${AIDEBINARY}" ]; then
+        if [ -n "${AIDEBINARY}" ]; then
             LogText "Result: AIDE is installed (${AIDEBINARY})"
             Report "file_integrity_tool[]=aide"
             FILE_INT_TOOL="aide"
@@ -70,13 +70,13 @@
 #
     # Test        : FINT-4315
     # Description : Check AIDE configuration file
-    if [ ! -z "${AIDEBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
+    if [ -n "${AIDEBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
     Register --test-no FINT-4315 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check AIDE configuration file"
     if [ ${SKIPTEST} -eq 0 ]; then
-        AIDE_CONFIG_LOCS="/etc /etc/aide /usr/local/etc"
+        AIDE_CONFIG_LOCS="${ROOTDIR}etc ${ROOTDIR}etc/aide ${ROOTDIR}usr/local/etc"
         LogText "Test: search for aide.conf in ${AIDE_CONFIG_LOCS}"
         for I in ${AIDE_CONFIG_LOCS}; do
-            if [ -f ${I}/aide.conf ]; then
+            if [ -f "${I}/aide.conf" ]; then
                 LogText "Result: found aide.conf in directory ${I}"
                 AIDECONFIG="${I}/aide.conf"
             fi
@@ -100,22 +100,23 @@
 #################################################################################
 #
     # Test        : FINT-4316
-    # Description : Check if AIDE database exist
-    if [ ! -z "${AIDEBINARY}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
-    Register --test-no FINT-4316 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check AIDE database"
+    # Description : Presence of AIDE database and size check
+    if [ -n "${AIDEBINARY}" -a -n "${AIDECONFIG}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
+    Register --test-no FINT-4316 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Presence of AIDE database and size check"
     if [ ${SKIPTEST} -eq 0 ]; then
-    	AIDE_DB=$(grep ^database= ${AIDECONFIG} | sed "s/.*://")
-	if case ${AIDE_DB} in @@*) ;; *) false;; esac; then
-    		AIDE_DB=$(echo ${AIDE_DB} | sed "s#.*}#$(grep  "@@define.*DBDIR" ${AIDECONFIG} | awk '{print $3}')#")
-	fi
-        LogText "Test: search for aide database ${AIDE_DB}"
+        AIDE_DB=$(${GREPBINARY} ^database= ${AIDECONFIG} | ${SEDBINARY} "s/.*://")
+        if case ${AIDE_DB} in @@*) ;; *) false;; esac; then
+            I=$(${GREPBINARY} "@@define.*DBDIR" ${AIDECONFIG} | ${AWKBINARY} '{print $3}')
+            AIDE_DB=$(echo ${AIDE_DB} | ${SEDBINARY} "s#.*}#${I}#")
+        fi
+        LogText "Test: search for AIDE database on disk ${AIDE_DB}"
 
         if [ ! -e "${AIDE_DB}" ]; then
             Display --indent 6 --text "- AIDE database" --result "${STATUS_NOT_FOUND}" --color RED
             LogText "Result: AIDE database ${AIDE_DB} does not exist"
             ReportWarning "${TEST_NO}" "No AIDE database was found, needed for AIDE functionality"
         else
-            LogText "Checking database ${AIDE_DB} for errors"
+            LogText "Checking database size ${AIDE_DB}"
             if [ -s "${AIDE_DB}" ]; then
                 Display --indent 6 --text "- AIDE database" --result "${STATUS_FOUND}" --color GREEN
                 LogText "Result: AIDE database ${AIDE_DB} exist and has a size greater than zero"
@@ -125,6 +126,7 @@
                 ReportSuggestion "${TEST_NO}" "Check the AIDE database as it may contain errors"
             fi
         fi
+        unset AIDE_DB I
     fi
 #
 #################################################################################
@@ -134,7 +136,7 @@
     Register --test-no FINT-4318 --weight L --network NO --category security --description "Osiris availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking Osiris binary"
-        if [ ! -z "${OSIRISBINARY}" ]; then
+        if [ -n "${OSIRISBINARY}" ]; then
             LogText "Result: Osiris is installed (${OSIRISBINARY})"
             Report "file_integrity_tool[]=osiris"
             FILE_INT_TOOL="osiris"
@@ -153,7 +155,7 @@
     Register --test-no FINT-4322 --weight L --network NO --category security --description "Samhain availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking Samhain binary"
-        if [ ! -z "${SAMHAINBINARY}" ]; then
+        if [ -n "${SAMHAINBINARY}" ]; then
             LogText "Result: Samhain is installed (${SAMHAINBINARY})"
             Report "file_integrity_tool[]=samhain"
             FILE_INT_TOOL="samhain"
@@ -172,7 +174,7 @@
     Register --test-no FINT-4326 --weight L --network NO --category security --description "Tripwire availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking Tripwire binary"
-        if [ ! -z "${TRIPWIREBINARY}" ]; then
+        if [ -n "${TRIPWIREBINARY}" ]; then
             LogText "Result: Tripwire is installed (${TRIPWIREBINARY})"
             Report "file_integrity_tool[]=tripwire"
             FILE_INT_TOOL="tripwire"
@@ -191,15 +193,14 @@
     Register --test-no FINT-4328 --weight L --network NO --category security --description "OSSEC syscheck daemon running"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if OSSEC syscheck daemon is running"
-        IsRunning ossec-syscheckd
-        if [ ${RUNNING} -eq 1 ]; then
-            LogText "Result: syscheck (OSSEC) installed"
+        if IsRunning "ossec-syscheckd"; then
+            LogText "Result: syscheck (OSSEC) active"
             Report "file_integrity_tool[]=ossec"
             FILE_INT_TOOL="ossec-syscheck"
             FILE_INT_TOOL_FOUND=1
             Display --indent 4 --text "- OSSEC (syscheck)" --result "${STATUS_FOUND}" --color GREEN
         else
-            LogText "Result: syscheck (OSSEC) not installed"
+            LogText "Result: syscheck (OSSEC) is not active"
             if IsVerbose; then Display --indent 4 --text "- OSSEC" --result "${STATUS_NOT_FOUND}" --color WHITE; fi
         fi
     fi
@@ -212,7 +213,7 @@
     Register --test-no FINT-4330 --weight L --network NO --category security --description "mtree availability"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking mtree binary"
-        if [ ! -z "${MTREEBINARY}" ]; then
+        if [ -n "${MTREEBINARY}" ]; then
             LogText "Result: mtree is installed (${MTREEBINARY})"
             Report "file_integrity_tool[]=mtree"
             FILE_INT_TOOL="mtree"
@@ -232,8 +233,8 @@
     Register --test-no FINT-4334 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check lfd daemon status"
     if [ ${SKIPTEST} -eq 0 ]; then
         Display --indent 4 --text "- lfd (CSF)" --result "${STATUS_FOUND}" --color GREEN
-        IsRunning 'lfd '
-        if [ ${RUNNING} -eq 1 ]; then
+        LogText "Test: determine lfd status"
+        if IsRunning "lfd - sleeping"; then
             LogText "Result: lfd daemon is running (CSF)"
             Report "file_integrity_tool[]=csf-lfd"
             Display --indent 6 --text "- LFD (CSF) daemon" --result "${STATUS_RUNNING}" --color GREEN
@@ -253,7 +254,7 @@
     if [ ${SKIPTEST} -eq 0 ]; then
         # LFD configuration parameters
         ENABLED=$(${GREPBINARY} "^LF_DAEMON = \"1\"" ${CSF_CONFIG})
-        if [ ! -z "${ENABLED}" ]; then
+        if [ -n "${ENABLED}" ]; then
             LogText "Result: lfd service is configured to run"
             Display --indent 6 --text "- Configuration status" --result "${STATUS_ENABLED}" --color GREEN
         else
@@ -261,7 +262,7 @@
             Display --indent 6 --text "- Configuration status" --result "${STATUS_DISABLED}" --color YELLOW
         fi
         ENABLED=$(${GREPBINARY} "^LF_DIRWATCH =" ${CSF_CONFIG} | ${AWKBINARY} '{ print $3 }' | ${SEDBINARY} 's/\"//g')
-        if [ ! "${ENABLED}" = "0" -a ! -z "${ENABLED}" ]; then
+        if [ ! "${ENABLED}" = "0" -a -n "${ENABLED}" ]; then
             LogText "Result: lfd directory watching is enabled (value: ${ENABLED})"
             Display --indent 6 --text "- Temporary directory watches" --result "${STATUS_ENABLED}" --color GREEN
         else
@@ -269,7 +270,7 @@
             Display --indent 6 --text "- Temporary directory watches" --result "${STATUS_DISABLED}" --color YELLOW
         fi
         ENABLED=$(${GREPBINARY} "^LF_DIRWATCH_FILE =" ${CSF_CONFIG} | ${AWKBINARY} '{ print $3 }' | ${SEDBINARY} 's/\"//g')
-        if [ ! "${ENABLED}" = "0" -a ! -z "${ENABLED}" ]; then
+        if [ ! "${ENABLED}" = "0" -a -n "${ENABLED}" ]; then
             Display --indent 6 --text "- Directory/File watches" --result "${STATUS_ENABLED}" --color GREEN
         else
             Display --indent 6 --text "- Directory/File watches" --result "${STATUS_DISABLED}" --color YELLOW
@@ -283,8 +284,7 @@
     Register --test-no FINT-4338 --weight L --network NO --category security --description "osqueryd syscheck daemon running"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if osqueryd syscheck daemon is running"
-        IsRunning osqueryd
-        if [ ${RUNNING} -eq 1 ]; then
+        if IsRunning "osqueryd"; then
             LogText "Result: syscheck (osquery) installed"
             Report "file_integrity_tool[]=osquery"
             FILE_INT_TOOL="osquery"
@@ -300,7 +300,7 @@
 #
     # Test        : FINT-4402 (was FINT-4316)
     # Description : Check if AIDE is configured to use SHA256 or SHA512 checksums
-    if [ ! "${AIDEBINARY}" = "" -a ! -z "${AIDECONFIG}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
+    if [ ! "${AIDEBINARY}" = "" -a -n "${AIDECONFIG}" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
     Register --test-no FINT-4402 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "AIDE configuration: Checksums (SHA256 or SHA512)"
     if [ ${SKIPTEST} -eq 0 ]; then
         FIND=$(${GREPBINARY} -v "^#" ${AIDECONFIG} | ${EGREPBINARY} "= .*(sha256|sha512)")

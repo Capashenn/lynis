@@ -1,5 +1,124 @@
 # Lynis Changelog
 
+## Lynis 3.0.0 (not released yet)
+
+This is a major release of Lynis and includes several big changes.
+Some of these changes may break your current usage of the tool, so test before
+deployment!
+
+### Breaking change: Non-interactive by default
+Lynis now runs non-interactive by default, to be more in line with the Unix
+philosophy. So the previously used '--quick' option is now default, and the tool
+will only wait when using the '--wait' option.
+
+### Breaking change: Deprecated options
+- Option: -c
+- Option: --check-update/--info
+- Option: --dump-options
+- Option: --license-key
+
+### Breaking change: Profile options
+The format of all profile options are converted (from key:value to key=value).
+You may have to update the changes you made in your custom.prf.
+
+### Security
+An important focus area for this release is on security. We added several
+measures to further tighten any possible misuse.
+
+## New: DevOps, Forensics, and pentesting mode
+This release adds initial support to allow defining a specialized type of audit.
+Using the relevant options, the scan will change base on the intended goal.
+
+### Added
+- Security: test PATH and warn or exit on discovery of dangerous location
+- Security: additional safeguard by testing if common system tools are available
+- Security: test parameters and arguments for presence of control characters
+- Security: filtering out unexpected characters from profiles
+- Security: test if setuid bit is set on Lynis binary
+- New function: DisplayException
+- New function: DisplayWarning
+- New function: Equals
+- New function: GetReportData
+- New function: HasCorrectFilePermissions
+- New function: Readonly
+- New function: SafeFile
+- New function: SafeInput
+- New option: --usecwd - run from the current working directory
+- New profile option: disable-plugin - disables a single plugin
+- New profile option: ssl-certificate-paths-to-ignore - ignore a path
+- New test: CRYP-7930 - test for LUKS encryption
+- New test: DBS-1828  - PostgreSQL configuration files
+- New test: FINT-4316 - presence of AIDE database and size test
+- New test: INSE-8314 - test for NIS client
+- New test: INSE-8316 - test for NIS server
+- New test: NETW-3200 - determine avilable network protocols
+- New test: PROC-3802 - check presence of prelink tooling
+- New report key: openssh_daemon_running
+- New command: lynis generate systemd-units
+- Measure timing of tests and report slow tests (10+ seconds)
+- Initial support for Clear Linux OS
+- Added end-of-life data for Arch Linux and Debian
+- Detection and end-of-life data added for Amazon Linux
+
+### Changed
+- Function: CheckItem() now returns only exit code (ITEM_FOUND is dropped)
+- Function: IsRunning supports the --user flag to define a related user
+- Function: PackageIsInstalled extended with pacman support
+- Profiles: unused options removed
+- Profiles: message is displayed when old format "key:value" is used
+- Security: the 'nounset' (set -u) parameter is now activated by default
+- AUTH-9266 - skip .pam-old files in /etc/pam.d
+- AUTH-9282 - fix: temporary variable was overwritten
+- AUTH-9408 - added support for pam_tally2 to log failed logins
+- CONT-8106 - support newer 'docker info' output
+- CRYP-8002 - gather kernel entropy on Linux systems
+- FILE-6374 - changed log and allow root location to be changed
+- FILE-6374 - corrected condition to find 'defaults' flag in /etc/fstab
+- FILE-7524 - optimized file permissions testing
+- FINT-4328 - corrected text in log
+- FINT-4334 - improved process detection for lfd
+- HOME-9304 - improved selection for normal users
+- HOME-9306 - improved selection for normal users
+- INSE-8050 - added com.apple.ftp-proxy and improved text output
+- INSE-8116 - added rsync service
+- INSE-8318 - test for TFTP client tools
+- INSE-8320 - test for TFTP server tools
+- INSE-8342 - renamed to INSE-8304
+- KRNL-5820 - extended check to include limits.d directory
+- LOGG-2154 - added support for rsyslog configurations
+- MAIL-8804 - replaced static strings with translation-aware strings
+- NAME-4402 - check if /etc/hosts exists before performing test
+- NAME-4404 - improved screen and log output
+- NAME-4408 - corrected Report function call
+- NETW-3032 - small rewrite of test and extended with addrwatch
+- PROC-3602 - allow different root directory
+- PROC-3612 - show 'Not found' instead of 'OK'
+- PROC-3614 - show 'Not found' instead of 'OK'
+- SCHD-7702 - removed hardening points
+- SSH-7402 - detect other SSH daemons like dropbear
+- SSH-7406 - strip OpenSSH patch version and remove characters (carriage return)
+- SSH-7408 - changed text in suggestion and report
+- SSH-7408 - added forced-commands-only option
+- STRG-1840 - renamed to USB-1000
+- STRG-1842 - added default authorized devices and renamed to USB-2000
+- TOOL-5002 - differentiate between a discovered binary and running process
+- TOOL-5160 - added support for OSSEC agent daemon
+- Perform additional check to ensure pacman package manager is used
+- Use 'pre-release/release' (was: 'dev/final') with 'lynis show release'
+- Use only locations from PATH environment variable, unless it is not defined
+- Show tip to use 'lynis generate hostids' when host IDs are missing
+- The 'show changelog' command works again for newer versions
+- Several code cleanups, simplification of commands, and code standardization
+- Tests using lsof may ignore individual threads (if supported)
+- Do not show tool tips when quiet option is used
+- Extended output of 'lynis update info'
+- Test if profiles are readable
+- systemd service file adjusted
+- bash completion script extended
+- Updated man page
+
+---------------------------------------------------------------------------------
+
 ## Lynis 2.7.5 (2019-06-24)
 
 ### Added
@@ -19,7 +138,6 @@
 - Extended help
 
 ---------------------------------------------------------------------------------
-
 
 ## Lynis 2.7.4 (2019-04-21)
 
@@ -2801,10 +2919,10 @@ Lynis 1.1.7 (2008-06-28)
  - Added dig availability check to DNS test [NETW-2704]
  - Bugfix: Fixed iptables test if the binary is not located in /sbin [FIRE-4512]
  - Bugfix: Improved yum-utils check to display suggestions correctly [PKGS-7384]
- - Bugfix: Fixed prequisits for grpck test [AUTH-9216]
+ - Bugfix: Fixed prerequisites for grpck test [AUTH-9216]
  - Improved MySQL check [DBS-1804]
  - Changed color at chkconfig boot services test [BOOT-5177]
- - Added missing prequisits output to portaudit test [PKGS-7382]
+ - Added missing prerequisites output to portaudit test [PKGS-7382]
  - Test output for FreeBSD mounts (UFS) improved [FILE-6329]
  - Extended OpenLDAP test to avoid finding itself in ps output [LDAP-2219]
  - Several tests have their warning reporting improved

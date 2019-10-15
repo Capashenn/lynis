@@ -84,12 +84,15 @@ CONT-8107:test:performance:containers::Check number of unused Docker containers:
 CONT-8108:test:security:containers::Check file permissions for Docker files:
 CORE-1000:test:performance:system_integrity::Check all system binaries:
 CRYP-7902:test:security:crypto::Check expire date of SSL certificates:
+CRYP-7930:test:security:crypto:Linux:Determine if system uses LUKS encryption:
+CRYP-8002:test:security:crypto:Linux:Gather kernel entropy:
 DNS-1600:test:security:dns::Validating that the DNSSEC signatures are checked:
 DBS-1804:test:security:databases::Checking active MySQL process:
 DBS-1816:test:security:databases::Checking MySQL root password:
 DBS-1818:test:security:databases::MongoDB status:
 DBS-1820:test:security:databases::Check MongoDB authentication:
 DBS-1826:test:security:databases::Checking active PostgreSQL processes:
+DBS-1828:test:security:databases::PostgreSQL configuration files:
 DBS-1840:test:security:databases::Checking active Oracle processes:
 DBS-1860:test:security:databases::Checking active DB2 instances:
 DBS-1880:test:security:databases::Checking active Redis processes:
@@ -111,7 +114,7 @@ FILE-6362:test:security:filesystems::Checking /tmp sticky bit:
 FILE-6363:test:security:filesystems::Checking /var/tmp sticky bit:
 FILE-6368:test:security:filesystems:Linux:Checking ACL support on root file system:
 FILE-6372:test:security:filesystems:Linux:Checking / mount options:
-FILE-6374:test:security:filesystems:Linux:Checking /boot mount options:
+FILE-6374:test:security:filesystems:Linux:Linux mount options:
 FILE-6376:test:security:filesystems:Linux:Determine if /var/tmp is bound to /tmp:
 FILE-6410:test:security:filesystems::Checking Locate database:
 FILE-6430:test:security:filesystems::Disable mounting of some filesystems:
@@ -120,6 +123,7 @@ FILE-7524:test:security:file_permissions::Perform file permissions check:
 FINT-4310:test:security:file_integrity::AFICK availability:
 FINT-4314:test:security:file_integrity::AIDE availability:
 FINT-4315:test:security:file_integrity::Check AIDE configuration file:
+FINT-4316:test:security:file_integirty::Presence of AIDE database and size check:
 FINT-4318:test:security:file_integrity::Osiris availability:
 FINT-4322:test:security:file_integrity::Samhain availability:
 FINT-4326:test:security:file_integrity::Tripwire availability:
@@ -148,6 +152,8 @@ FIRE-4586:test:security:firewalls::Check firewall logging:
 FIRE-4590:test:security:firewalls::Check firewall status:
 FIRE-4594:test:security:firewalls::Check for APF presence:
 HOME-9302:test:security:homedirs::Create list with home directories:
+HOME-9304:test:security:homedirs::Test permissions of user home directories:
+HOME-9306:test:security:homedirs::Test ownership of user home directories:
 HOME-9310:test:security:homedirs::Checking for suspicious shell history files:
 HOME-9350:test:security:homedirs::Collecting information from home directories:
 HRDN-7220:test:security:hardening::Check if one or more compilers are installed:
@@ -180,6 +186,12 @@ INSE-8116:test:security:insecure_services::Insecure services enabled via xinetd:
 INSE-8200:test:security:insecure_services::Usage of TCP wrappers:
 INSE-8300:test:security:insecure_services::Presence of rsh client:
 INSE-8302:test:security:insecure_services::Presence of rsh server:
+INSE-8310:test:security:insecure_services::Presence of telnet client:
+INSE-8312:test:security:insecure_services::Presence of telnet server:
+INSE-8314:test:security:insecure_services::Presence of NIS client:
+INSE-8316:test:security:insecure_services::Presence of NIS server:
+INSE-8318:test:security:insecure_services::Presence of TFTP client:
+INSE-8320:test:security:insecure_services::Presence of TFTP server:
 KRNL-5622:test:security:kernel:Linux:Determine Linux default run level:
 KRNL-5677:test:security:kernel:Linux:Check CPU options and support:
 KRNL-5695:test:security:kernel:Linux:Determine Linux kernel version and release number:
@@ -279,6 +291,7 @@ NETW-3015:test:security:networking:Linux:Checking promiscuous interfaces (Linux)
 NETW-3028:test:security:networking::Checking connections in WAIT state:
 NETW-3030:test:security:networking::Checking DHCP client status:
 NETW-3032:test:security:networking:Linux:Checking for ARP monitoring software:
+NETW-3200:test:security:networking::Determine available network protocols:
 PHP-2211:test:security:php::Check php.ini presence:
 PHP-2320:test:security:php::Check PHP disabled functions:
 PHP-2368:test:security:php::Check PHP register_globals option:
@@ -339,6 +352,7 @@ PROC-3602:test:security:memory_processes:Linux:Checking /proc/meminfo for memory
 PROC-3604:test:security:memory_processes:Solaris:Query prtconf for memory details:
 PROC-3612:test:security:memory_processes::Check dead or zombie processes:
 PROC-3614:test:security:memory_processes::Check heavy IO waiting based processes:
+PROC-3802:test:security:memory_processes::Check presence of prelink tooling:
 RBAC-6272:test:security:mac_frameworks::Check grsecurity presence:
 SCHD-7702:test:security:scheduling::Check status of cron daemon:
 SCHD-7704:test:security:scheduling::Check crontab/cronjobs:
@@ -369,8 +383,6 @@ SSH-7404:test:security:ssh::Check SSH daemon file location:
 SSH-7406:test:security:ssh::Detection of OpenSSH server version:
 SSH-7408:test:security:ssh::Check SSH specific defined options:
 SSH-7440:test:security:ssh::AllowUsers and AllowGroups:
-STRG-1840:test:security:storage:Linux:Check if USB storage is disabled:
-STRG-1842:test:security:storage:Linux:Check USB authorizations:
 STRG-1846:test:security:storage:Linux:Check if firewire storage is disabled:
 STRG-1902:test:security:storage_nfs::Check rpcinfo registered programs:
 STRG-1904:test:security:storage_nfs::Check nfs rpc:
@@ -396,7 +408,9 @@ TOOL-5102:test:security:tooling::Check for presence of Fail2ban:
 TOOL-5104:test:security:tooling::Enabled tests for Fail2ban:
 TOOL-5120:test:security:tooling::Presence of Snort IDS:
 TOOL-5122:test:security:tooling::Snort IDS configuration file:
-TOOL-5160:test:security:tooling::Check for active OSSEC analysis daemon:
+TOOL-5160:test:security:tooling::Check for active OSSEC daemon:
 TOOL-5190:test:security:tooling::Check presence of available IDS/IPS tooling:
+USB-1000:test:security:storage:Linux:Check if USB storage is disabled:
+USB-2000:test:security:storage:Linux:Check USB authorizations:
 USB-3000:test:security:storage:Linux:Check for presence of USBGuard:
 # EOF
