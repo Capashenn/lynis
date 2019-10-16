@@ -386,7 +386,7 @@
             Linux)
                 if [ -n "${SSBINARY}" ]; then
                     LogText "Test: Retrieving ss information to find listening ports"
-                    DATA=$(${SSBINARY} --query=udp,tcp -plnt | ${AWKBINARY} '{ if ($1!="Netid") { print "raw,ss,v1|"$1"|"$5"|"$7"|" }}' | ${SEDBINARY} 's/pid=[0-9]\{1,\},fd=[0-9]\{1,\}//g' | ${SEDBINARY} 's/users://' | ${SEDBINARY} 's/,)//g' | ${TRBINARY} -d '()"')
+                    DATA=$(${SSBINARY}  -A udp,tcp -plnt | ${AWKBINARY} '{ if ($1!="Netid") { print "raw,ss,v1|"$1"|"$5"|"$7"|" }}' | ${SEDBINARY} 's/pid=[0-9]\{1,\},fd=[0-9]\{1,\}//g' | ${SEDBINARY} 's/users://' | ${SEDBINARY} 's/,)//g' | ${TRBINARY} -d '()"')
                 elif [ -n "${NETSTATBINARY}" ]; then
                     LogText "Test: Retrieving netstat information to find listening ports"
                     # UDP
