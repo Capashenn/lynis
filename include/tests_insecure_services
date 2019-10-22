@@ -596,6 +596,8 @@
         else
             LogText "Result: LDAP server is NOT installed"
             Display --indent 2 --text "- Installed LDAP server package" --result "${STATUS_NOT_FOUND}" --color GREEN
+        fi
+    fi
 #
 #################################################################################
 #
