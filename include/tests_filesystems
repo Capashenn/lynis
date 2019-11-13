@@ -814,7 +814,7 @@
     if [ ${SKIPTEST} -eq 0 ]; then
         if [ -n "${LSMODBINARY}" -a -f /proc/modules ]; then
             Display --indent 2 --text "- Disable kernel support of some filesystems"
-            LIST_FS_NOT_SUPPORTED="cramfs freevxfs hfs hfsplus jffs2 squashfs udf"
+            LIST_FS_NOT_SUPPORTED="cramfs freevxfs hfs hfsplus jffs2 squashfs udf fat vfat"
             FOUND=0
             AVAILABLE_FS=""
             AVAILABLE_MODPROBE_FS=""
