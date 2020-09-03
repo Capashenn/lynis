@@ -6,7 +6,7 @@
 # ------------------
 #
 # Copyright 2007-2013, Michael Boelen
-# Copyright 2007-2019, CISOfy
+# Copyright 2007-2020, CISOfy
 #
 # Website  : https://cisofy.com
 # Blog     : http://linux-audit.com
@@ -37,7 +37,7 @@
 #
     # Test        : INSE-8000
     # Description : Check for installed inetd package
-    Register --test-no INSE-8000 --weight L --network NO --category security --description "Installed inetd package"
+    Register --test-no INSE-8000 --package-manager-required --weight L --network NO --category security --description "Installed inetd package"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check for installed inetd daemon
         LogText "Test: Checking if inetd is installed"
@@ -105,7 +105,7 @@
         else
             LogText "Result: found services in inetd, even though inetd is not running"
             Display --indent 4 --text "- Checking enabled inetd services" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Although inetd is not running, make sure no services are enabled in ${INETD_CONFIG_FILE}, or remove inetd service"
+            ReportSuggestion "${TEST_NO}" "Although inetd is not running, make sure no services are enabled in ${INETD_CONFIG_FILE}, or remove inetd service"
         fi
     fi
 #
@@ -134,14 +134,14 @@
 #
     # Test        : INSE-8100
     # Description : Check for installed xinetd daemon
-    Register --test-no INSE-8100 --weight L --network NO --category security --description "Check for installed xinetd daemon"
+    Register --test-no INSE-8100 --package-manager-required --weight L --network NO --category security --description "Check for installed xinetd daemon"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check for installed xinetd daemon
         LogText "Test: Checking for installed xinetd daemon"
         if PackageIsInstalled "xinetd"; then
             LogText "Result: xinetd is installed"
             Display --indent 2 --text "- Installed xinetd package" --result "${STATUS_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "If there are no xinetd services required, it is recommended that the daemon be removed"
+            ReportSuggestion "${TEST_NO}" "If there are no xinetd services required, it is recommended that the daemon be removed"
         else
             LogText "Result: xinetd is NOT installed"
             Display --indent 2 --text "- Installed xinetd package" --result "${STATUS_NOT_FOUND}" --color GREEN
@@ -200,7 +200,7 @@
         else
             LogText "Result: found services in ${XINETD_CONFIG_DIR}, even though xinetd is not running"
             Display --indent 6 --text "- Enabled xinetd.d services" --result "${STATUS_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Although xinetd is not running, make sure no services are enabled in ${XINETD_CONFIG_DIR}, or remove xinetd service"
+            ReportSuggestion "${TEST_NO}" "Although xinetd is not running, make sure no services are enabled in ${XINETD_CONFIG_DIR}, or remove xinetd service"
         fi
     fi
 #
@@ -270,7 +270,7 @@
     # Test        : INSE-8200
     # Description : Check if tcp_wrappers is installed when inetd/xinetd is active
     if [ ${INETD_ACTIVE} -eq 1 -o ${XINETD_ACTIVE} -eq 1 ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
-    Register --test-no INSE-8200 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check if tcp_wrappers is installed when inetd/xinetd is active"
+    Register --test-no INSE-8200 --package-manager-required --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Check if tcp_wrappers is installed when inetd/xinetd is active"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if tcp_wrappers is installed"
         FOUND=0
@@ -283,7 +283,7 @@
             Display --indent 2 --text "- Installed tcp_wrappers package" --result "${STATUS_FOUND}" --color GREEN
         else
             LogText "Result: tcp_wrappers is NOT installed"
-            Display --indent 2 --text "- Installed tcp_wrappers package" --result "${STATUS_NOT_FOUND}" --color YELLOW
+            Display --indent 2 --text "- Checking tcp_wrappers installation" --result "${STATUS_SUGGESTION}" --color YELLOW
             ReportSuggestion ${TEST_NO} "When network services are using the inetd/xinetd service, the tcp_wrappers package should be installed"
         fi
     fi
@@ -292,7 +292,7 @@
 #
     # Test        : INSE-8300
     # Description : Check if rsh client is installed
-    Register --test-no INSE-8300 --weight L --network NO --category security --description "Check if rsh client is installed"
+    Register --test-no INSE-8300 --package-manager-required --weight L --network NO --category security --description "Check if rsh client is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if rsh client is installed"
         FOUND=0
@@ -302,8 +302,8 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: rsh client is installed"
-            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Remove rsh client when it is not in use or replace with the more secure SSH package"
+            Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_SUGGESTION}" --color YELLOW
+            ReportSuggestion "${TEST_NO}" "Remove rsh client when it is not in use or replace with the more secure SSH package"
         else
             LogText "Result: rsh client is NOT installed"
             Display --indent 2 --text "- Installed rsh client package" --result "${STATUS_NOT_FOUND}" --color GREEN
@@ -348,7 +348,7 @@
 #
     # Test        : INSE-8304
     # Description : Check if rsh server is installed
-    Register --test-no INSE-8304 --weight L --network NO --category security --description "Check if rsh server is installed"
+    Register --test-no INSE-8304 --package-manager-required --weight L --network NO --category security --description "Check if rsh server is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check if rsh server is installed
         LogText "Test: Checking if rsh server is installed"
@@ -359,8 +359,8 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: rsh server is installed"
-            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Remove the rsh-server package and replace with a more secure alternative like SSH"
+            Display --indent 2 --text "- Installed rsh server package" --result "${STATUS_SUGGESTION}" --color YELLOW
+            ReportSuggestion "${TEST_NO}" "Remove the rsh-server package and replace with a more secure alternative like SSH"
             Report "insecure_service[]=rsh-server"
         else
             LogText "Result: rsh server is NOT installed"
@@ -372,7 +372,7 @@
 #
     # Test        : INSE-8310
     # Description : Check if telnet client is installed
-    Register --test-no INSE-8310 --weight L --network NO --category security --description "Check if telnet client is installed"
+    Register --test-no INSE-8310 --package-manager-required --weight L --network NO --category security --description "Check if telnet client is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check if telnet client is installed
         LogText "Test: Checking if telnet client is installed"
@@ -380,7 +380,7 @@
             LogText "Result: telnet client is installed"
             Display --indent 2 --text "- Installed telnet client package" --result "${STATUS_FOUND}" --color YELLOW
             # Telnet client usage might be used for troubleshooting instead of system administration
-            ReportSuggestion ${TEST_NO} "telnet client contain numerous security exposures and have been replaced with the more secure SSH package"
+            ReportSuggestion "${TEST_NO}" "telnet client contain numerous security exposures and have been replaced with the more secure SSH package"
         else
             LogText "Result: telnet client is NOT installed"
             Display --indent 2 --text "- Installed telnet client package" --result "${STATUS_NOT_FOUND}" --color GREEN
@@ -391,7 +391,7 @@
 #
     # Test        : INSE-8312
     # Description : Check if telnet server is installed
-    Register --test-no INSE-8322 --weight L --network NO --category security --description "Check if telnet server is installed"
+    Register --test-no INSE-8322 --package-manager-required --weight L --network NO --category security --description "Check if telnet server is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         # Check if TFTP server is installed
         LogText "Test: Checking if telnet server is installed"
@@ -402,8 +402,8 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: telnet server is installed"
-            Display --indent 2 --text "- Installed telnet-server package" --result "${STATUS_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Removing the telnet-server package and replace with SSH when possible"
+            Display --indent 2 --text "- Installed telnet server package" --result "${STATUS_FOUND}" --color YELLOW
+            ReportSuggestion "${TEST_NO}" "Removing the ${FOUND} package and replace with SSH when possible"
             Report "insecure_service[]=telnet-server"
         else
             LogText "Result: telnet server is NOT installed"
@@ -416,7 +416,7 @@
 #
     # Test        : INSE-8314
     # Description : Check if NIS client is installed
-    Register --test-no INSE-8314 --weight L --network NO --category security --description "Check if NIS client is installed"
+    Register --test-no INSE-8314 --package-manager-required --weight L --network NO --category security --description "Check if NIS client is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         FOUND=""
         LogText "Test: Checking if NIS client is installed"
@@ -430,7 +430,7 @@
         if [ -n "${FOUND}" ]; then
             LogText "Result: NIS client is installed"
             Display --indent 2 --text "- Checking NIS client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "NIS client should be removed as it contains numerous security exposures and have been replaced with the more secure SSH package"
+            ReportSuggestion "${TEST_NO}" "NIS client should be removed if not required. Use a more secure alternative or a protocol that can use encrypted communications."
         else
             LogText "Result: NIS client is NOT installed"
             Display --indent 2 --text "- Checking NIS client installation" --result "${STATUS_OK}" --color GREEN
@@ -441,7 +441,7 @@
 #
     # Test        : INSE-8316
     # Description : Check if NIS server is installed
-    Register --test-no INSE-8316 --weight L --network NO --category security --description "Check if NIS server is installed"
+    Register --test-no INSE-8316 --package-manager-required --weight L --network NO --category security --description "Check if NIS server is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         FOUND=""
         LogText "Test: Checking if NIS server is installed"
@@ -455,7 +455,7 @@
         if [ -n "${FOUND}" ]; then
             LogText "Result: NIS server is installed"
             Display --indent 2 --text "- Checking NIS server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of NIS or NIS+ services"
+            ReportSuggestion "${TEST_NO}" "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of NIS or NIS+ services"
         else
             LogText "Result: NIS server is NOT installed"
             Display --indent 2 --text "- Checking NIS server installation" --result "${STATUS_OK}" --color GREEN
@@ -466,7 +466,7 @@
 #
     # Test        : INSE-8318
     # Description : Check if TFTP client is installed
-    Register --test-no INSE-8318 --weight L --network NO --category security --description "Check if TFTP client is installed"
+    Register --test-no INSE-8318 --package-manager-required --weight L --network NO --category security --description "Check if TFTP client is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if TFTP client is installed"
         FOUND=""
@@ -480,7 +480,7 @@
         if [ -n "${FOUND}" ]; then
             LogText "Result: TFTP client is installed"
             Display --indent 2 --text "- Checking TFTP client installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "It is recommended that TFTP be removed, unless there is a specific need for TFTP (such as a boot server)"
+            ReportSuggestion "${TEST_NO}" "It is recommended that TFTP be removed, unless there is a specific need for TFTP (such as a boot server)"
         else
             LogText "Result: TFTP client is NOT installed"
             Display --indent 2 --text "- Checking TFTP client installation" --result "${STATUS_OK}" --color GREEN
@@ -491,7 +491,7 @@
 #
     # Test        : INSE-8320
     # Description : Check if TFTP server is installed
-    Register --test-no INSE-8320 --weight L --network NO --category security --description "Check if TFTP server is installed"
+    Register --test-no INSE-8320 --package-manager-required --weight L --network NO --category security --description "Check if TFTP server is installed"
     if [ ${SKIPTEST} -eq 0 ]; then
         LogText "Test: Checking if TFTP server is installed"
         FOUND=""
@@ -505,7 +505,7 @@
         if [ -n "${FOUND}" ]; then
             LogText "Result: TFTP server is installed"
             Display --indent 2 --text "- Checking TFTP server installation" --result "${STATUS_SUGGESTION}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of tftp services"
+            ReportSuggestion "${TEST_NO}" "Removing the ${FOUND} package decreases the risk of the accidental (or intentional) activation of tftp services"
         else
             LogText "Result: TFTP server is NOT installed"
             Display --indent 2 --text "- Checking TFTP server installation" --result "${STATUS_OK}" --color GREEN
@@ -609,7 +609,7 @@
             if ${LAUNCHCTL_BINARY} list | ${GREPBINARY} -sq ${ITEM}; then
                 Display --indent 2 --text "- ${ITEM}" --result "${STATUS_NO}" --color RED
                 LogText "Result: found ${ITEM}, which is considered an insecure service"
-                AddSuggestion "${TEST_NO}" "Consider disabling service ${ITEM}" "launchctl" "-"
+                ReportSuggestion "${TEST_NO}" "Consider disabling service ${ITEM}" "launchctl" "-"
                 AddHP 0 1
             else
                 Display --indent 2 --text "- ${ITEM}" --result "${STATUS_OK}" --color GREEN

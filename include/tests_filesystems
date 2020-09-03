@@ -6,7 +6,7 @@
 # ------------------
 #
 # Copyright 2007-2013, Michael Boelen
-# Copyright 2007-2019, CISOfy
+# Copyright 2007-2020, CISOfy
 #
 # Website  : https://cisofy.com
 # Blog     : http://linux-audit.com
@@ -44,19 +44,20 @@
             if [ -L ${I} ]; then
                 ShowSymlinkPath ${I}
                 LogText "Result: ${I} is a symlink. Manual check required to determine exact file system options"
-                ReportSuggestion ${TEST_NO} "Symlinked mount point needs to be checked manually" "${I}" ""
+                ReportSuggestion "${TEST_NO}" "Symlinked mount point needs to be checked manually" "${I}" ""
                 Display --indent 4 --text "- Checking ${I} mount point" --result SYMLINK --color WHITE
             elif [ -d ${I} ]; then
                 LogText "Result: directory ${I} exists"
                 case "${OS}" in
                     "AIX") FIND=$(${MOUNTBINARY} | ${AWKBINARY} -v MP=${I} '{ if ($2==MP) { print $2 }}') ;;
+                    "HP-UX") FIND=$(${MOUNTBINARY} | ${AWKBINARY} -v MP=${I} '{ if ($1==MP) { print $1 }}') ;;
                     *) FIND=$(${MOUNTBINARY} | ${AWKBINARY} -v MP=${I} '{ if ($3==MP) { print $3 }}') ;;
                 esac
 
                 if IsEmpty "${FIND}"; then
                     LogText "Result: ${I} not found in mount list. Directory most likely stored on / file system"
                     Display --indent 4 --text "- Checking ${I} mount point" --result "${STATUS_SUGGESTION}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "To decrease the impact of a full ${I} file system, place ${I} on a separate partition"
+                    ReportSuggestion "${TEST_NO}" "To decrease the impact of a full ${I} file system, place ${I} on a separate partition"
                     AddHP 9 10
                 else
                     LogText "Result: found ${I} as a separated mount point"
@@ -261,10 +262,11 @@
 #################################################################################
 #
     # Test        : FILE-6330
-    # Description : Query all ZFS mounts from /etc/fstab
+    # Description : Query ZFS mounts
+    # Note        : mount -p does not work under Linux
     Register --test-no FILE-6330 --os FreeBSD --weight L --network NO --category security --description "Checking ZFS file systems"
     if [ ${SKIPTEST} -eq 0 ]; then
-        LogText "Test: Query /etc/fstab for available ZFS mount points"
+        LogText "Test: Discover for available ZFS mount points"
         FIND=$(${MOUNTBINARY} -p | ${AWKBINARY} '{ if ($3 == "zfs") { print $1":"$2":"$3":"$4":" }}')
         if [ -z "${FIND}" ]; then
             Display --indent 2 --text "- Querying ZFS mount points (mount -p)" --result "${STATUS_NONE}" --color WHITE
@@ -285,7 +287,7 @@
     # Description : Query all HAMMER PFS mounts from /etc/fstab
     Register --test-no FILE-6439 --os DragonFly --weight L --network NO --category security --description "Checking HAMMER PFS mounts"
     if [ ${SKIPTEST} -eq 0 ]; then
-        LogText "Test: Query /etc/fstab for available HAMMER PFS  mount points"
+        LogText "Test: Query /etc/fstab for available HAMMER PFS mount points"
         FIND=$(${MOUNTBINARY} -p | ${AWKBINARY} '{ if ($3 == "null") { print $1":"$2":"$3":"$4":" }}')
         if [ -z "${FIND}" ]; then
             Display --indent 2 --text "- Querying HAMMER PFS mount points (mount -p)" --result "${STATUS_NONE}" --color WHITE
@@ -377,8 +379,8 @@
         else
             Display --indent 2 --text "- Testing swap partitions" --result "CHECK NEEDED" --color YELLOW
             LogText "Result: possible incorrect mount options used for mounting swap partition (${FIND})"
-            #ReportWarning ${TEST_NO} "Possible incorrect mount options used for swap partition (${FIND})"
-            ReportSuggestion ${TEST_NO} "Check your /etc/fstab file for swap partition mount options"
+            #ReportWarning "${TEST_NO}" "Possible incorrect mount options used for swap partition (${FIND})"
+            ReportSuggestion "${TEST_NO}" "Check your /etc/fstab file for swap partition mount options"
             LogText "Notes: usually swap partition have 'sw' or 'swap' in the options field (4th)"
         fi
     fi
@@ -446,7 +448,7 @@
             LogText "private information and should be deleted it not being used actively. Use a tool like lsof to"
             LogText "see which programs possibly are using a particular file. Some systems can cleanup temporary"
             LogText "directories by setting a boot option."
-            ReportSuggestion ${TEST_NO} "Check ${COUNT} files in ${ROOTDIR}tmp which are older than ${TMP_OLD_DAYS} days"
+            ReportSuggestion "${TEST_NO}" "Check ${COUNT} files in ${ROOTDIR}tmp which are older than ${TMP_OLD_DAYS} days"
         fi
     fi
 #
@@ -465,7 +467,7 @@
             AddHP 3 3
         else
             Display --indent 2 --text "- Checking ${ROOTDIR}tmp sticky bit" --result "${STATUS_WARNING}" --color RED
-            ReportSuggestion ${TEST_NO} "Set the sticky bit on ${ROOTDIR}tmp, to prevent users deleting (by other owned) files in the /tmp directory." "/tmp" "text:Set sticky bit"
+            ReportSuggestion "${TEST_NO}" "Set the sticky bit on ${ROOTDIR}tmp, to prevent users deleting (by other owned) files in the /tmp directory." "/tmp" "text:Set sticky bit"
             AddHP 0 3
         fi
         unset FIND
@@ -488,7 +490,7 @@
             AddHP 3 3
         else
             Display --indent 2 --text "- Checking ${ROOTDIR}var/tmp sticky bit" --result "${STATUS_WARNING}" --color RED
-            ReportSuggestion ${TEST_NO} "Set the sticky bit on ${ROOTDIR}var/tmp, to prevent users deleting (by other owned) files in the /var/tmp directory." "/var/tmp" "text:Set sticky bit"
+            ReportSuggestion "${TEST_NO}" "Set the sticky bit on ${ROOTDIR}var/tmp, to prevent users deleting (by other owned) files in the /var/tmp directory." "/var/tmp" "text:Set sticky bit"
             AddHP 0 3
         fi
         unset FIND
@@ -604,16 +606,18 @@
     #            ---------------------------------------------------------
     #               Mount point              nodev  noexec  nosuid
     #               /boot                      v      v       v
+    #               /dev                              v       v
     #               /dev/shm                   v      v       v
     #               /home                      v              v
+    #               /run                       v              v
     #               /tmp                       v      v       v
-    #               /var                                      v
+    #               /var                       v              v
     #               /var/log                   v      v       v
     #               /var/log/audit             v      v       v
     #               /var/tmp                   v      v       v
     #            ---------------------------------------------------------
 
-    FILESYSTEMS_TO_CHECK="/boot:nodev,noexec,nosuid /dev/shm:nosuid,nodev,noexec /home:nodev,nosuid /tmp:nodev,noexec,nosuid /var:nosuid /var/log:nodev,noexec,nosuid /var/log/audit:nodev,noexec,nosuid /var/tmp:nodev,noexec,nosuid"
+    FILESYSTEMS_TO_CHECK="/boot:nodev,noexec,nosuid /dev:noexec,nosuid /dev/shm:nosuid,nodev,noexec /home:nodev,nosuid /run:nodev,nosuid /tmp:nodev,noexec,nosuid /var:nodev,nosuid /var/log:nodev,noexec,nosuid /var/log/audit:nodev,noexec,nosuid /var/tmp:nodev,noexec,nosuid"
     Register --test-no FILE-6374 --os Linux --weight L --network NO --category security --description "Linux mount options"
     if [ ${SKIPTEST} -eq 0 ]; then
         if [ -f ${ROOTDIR}etc/fstab ]; then
@@ -627,9 +631,14 @@
                         FS_FSTAB=""
                     fi
                 fi
+                if [ -z "${FS_FSTAB}" ]; then # not found in fstab, check if mounted otherwise
+                    FS_FSTAB=$(mount | ${AWKBINARY} -v fs=${FILESYSTEM} '{ if ($3==fs) { print $6 } }')
+                    FOUND_FLAGS=$(mount | ${AWKBINARY} -v fs=${FILESYSTEM} '{ if ($1~"[^#]" && $3==fs) { print $6 } }' | ${SEDBINARY} 's/,/ /g' | ${TRBINARY} '\n' ' ')
+                else
+                    FOUND_FLAGS=$(${AWKBINARY} -v fs=${FILESYSTEM} '{ if ($1~"[^#]" && $2==fs) { print $4 } }' ${ROOTDIR}etc/fstab | ${SEDBINARY} 's/,/ /g' | ${TRBINARY} '\n' ' ')
+                fi
                 if [ -n "${FS_FSTAB}" ]; then
                     # In awk using caret/circumflex as first character between brackets, means 'not' (instead of beginning of line)
-                    FOUND_FLAGS=$(${AWKBINARY} -v fs=${FILESYSTEM} '{ if ($1~"[^#]" && $2==fs) { print $4 } }' ${ROOTDIR}etc/fstab | ${SEDBINARY} 's/,/ /g' | ${TRBINARY} '\n' ' ')
                     LogText "File system:    ${FILESYSTEM}"
                     LogText "Expected flags: ${EXPECTED_FLAGS}"
                     LogText "Found flags:    ${FOUND_FLAGS}"
@@ -670,6 +679,13 @@
                 fi
             done
         fi
+        NMOUNTS=$(mount | ${WCBINARY} --lines)
+        NDEVMOUNTS=$(mount | ${AWKBINARY} '{print $6}' | ${GREPBINARY} -v nodev | ${WCBINARY} --lines)
+        NEXECMOUNTS=$(mount | ${AWKBINARY} '{print $6}' | ${GREPBINARY} -v noexec | ${WCBINARY} --lines)
+        NSUIDMOUNTS=$(mount | ${AWKBINARY} '{print $6}' | ${GREPBINARY} -v nosuid | ${WCBINARY} --lines)
+        NWRITEANDEXECMOUNTS=$(mount | ${AWKBINARY} '{print $6}' | ${GREPBINARY} -v noexec | ${EGREPBINARY} -v '^\(ro[,)]' | ${WCBINARY} --lines)
+        LogText "Result: Total without nodev:${NDEVMOUNTS} noexec:${NEXECMOUNTS} nosuid:${NSUIDMOUNTS} ro or noexec (W^X): ${NWRITEANDEXECMOUNTS}, of total ${NMOUNTS}"
+        Display --indent 2 --text "- Total without nodev:${NDEVMOUNTS} noexec:${NEXECMOUNTS} nosuid:${NSUIDMOUNTS} ro or noexec (W^X): ${NWRITEANDEXECMOUNTS} of total ${NMOUNTS}"
     fi
 #
 #################################################################################
@@ -703,7 +719,6 @@
     # Description : Check for nodirtime option
 
     # Want to contribute to Lynis? Create this test
-
 #
 #################################################################################
 #
@@ -711,7 +726,6 @@
     # Description : Check for relatime
 
     # Want to contribute to Lynis? Create this test
-
 #
 #################################################################################
 #
@@ -724,11 +738,36 @@
 #
 #################################################################################
 #
-    # Test        : FILE-6394 TODO
+    # Test        : FILE-6394
     # Description : Check vm.swappiness (Linux)
-
-    # Want to contribute to Lynis? Create this test
-
+    Register --test-no FILE-6394 --os Linux --weight L --network NO --category security --description "Determine level of swappiness."
+    if [ ${SKIPTEST} -eq 0 ]; then
+        SWAPLEVEL=$(${CAT_BINARY} /proc/sys/vm/swappiness)
+        LogText "Test: checking level of vm.swappiness: ${SWAPLEVEL}"
+        PHYSDISK=$(${LSBLKBINARY} | ${GREPBINARY} -E 'disk|SWAP' | ${GREPBINARY} -B1 SWAP | ${HEADBINARY} -n1 | ${AWKBINARY} '{print $1}')
+        if [ ${SWAPLEVEL} -gt 60 ]; then
+            LogText "Result: vm.swappiness=${SWAPLEVEL} meaning that swapping is more frequent than default."
+            # Check if swap is on a HDD or SDD for frequent swapping
+            if [ -d "/sys/block/${PHYSDISK}" ]; then
+                HDDORSDD=$(${CAT_BINARY} "/sys/block/${PHYSDISK}/queue/rotational")
+                if [ ${HDDORSDD} -eq 1 ]; then
+                    ReportSuggestion "${TEST_NO}" "vm.swappiness set to: ${SWAPLEVEL} > 60 (default) - consider installing an SSD for swap partition for better performance."
+                fi
+            fi
+        elif [ ${SWAPLEVEL} -eq 0 ]; then
+            LogText "Result: vm.swappiness=${SWAPLEVEL} meaning swapping is disabled."
+            ReportSuggestion "${TEST_NO}" "vm.swappiness set to: ${SWAPLEVEL}. Consider setting value to minimum of 1 for minimizing swappiness, but not quite disabling it. Will prevent OOM killer from killing processes when running out of physical memory."
+        elif [ ${SWAPLEVEL} -eq 1 ]; then
+            LogText "Result: vm.swappiness=${SWAPLEVEL} meaning that swapping can still occur but at very minimum."
+        elif [ ${SWAPLEVEL} -eq 10 ]; then
+            LogText "Result: vm.swappiness=${SWAPLEVEL} which is the preferred setting for database servers."
+        elif [ ${SWAPLEVEL} -lt 60 ]; then
+            LogText "Result: vm.swappiness=${SWAPLEVEL} meaning that swapping is less frequent than default. This is only recommended for servers."
+        else
+            LogText "Result: vm.swappiness=${SWAPLEVEL} which is the standard level of swappiness and works well for desktop systems."
+        fi
+        if IsVerbose; then Display --indent 2 --text "- Swappiness: ${SWAPLEVEL}" --result "INFO" --color WHITE; fi
+    fi
 #
 #################################################################################
 #
@@ -766,7 +805,7 @@
         else
             LogText "Result: database not found"
             Display --indent 2 --text "- Checking Locate database" --result "${STATUS_NOT_FOUND}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "The database required for 'locate' could not be found. Run 'updatedb' or 'locate.updatedb' to create this file."
+            ReportSuggestion "${TEST_NO}" "The database required for 'locate' could not be found. Run 'updatedb' or 'locate.updatedb' to create this file."
         fi
     fi
 #
@@ -809,7 +848,7 @@
     # Test        : FILE-6430
     # Description : Disable mounting of some filesystems
     # Rationale   : Unless there is a specific reason to use a particular file system, disable it.
-    # Data        : cramfs freevxfs hfs hfsplus jffs2 squashfs udf 
+    # Data        : cramfs freevxfs hfs hfsplus jffs2 squashfs udf
     Register --test-no FILE-6430 --weight L --network NO --category security --description "Disable mounting of some filesystems"
     if [ ${SKIPTEST} -eq 0 ]; then
         if [ -n "${LSMODBINARY}" -a -f /proc/modules ]; then
@@ -820,19 +859,17 @@
             AVAILABLE_MODPROBE_FS=""
             for FS in ${LIST_FS_NOT_SUPPORTED}; do
                 # Check if filesystem is present in modprobe output
-                FIND=$(${MODPROBEBINARY} -v -n $FS 2>/dev/null | ${EGREPBINARY} "/${FS}.ko" | tail -1)
+                FIND=$(${MODPROBEBINARY} -v -n ${FS} 2>/dev/null | ${EGREPBINARY} "/${FS}.ko" | ${TAILBINARY} -1)
                 if [ -n "${FIND}" ]; then
-                    LogText "Result: found module support in kernel: ${FIND}"
+                    LogText "Result: found ${FS} support in the kernel (output = ${FIND})"
                     Debug "Module ${FS} present in the kernel"
                     LogText "Test: Checking if ${FS} is active"
                     # Check if FS is present in lsmod output
                     FIND=$(${LSMODBINARY} | ${EGREPBINARY} "^${FS}")
                     if IsEmpty "${FIND}"; then
-                        LogText "Result: module ${FS} is not loaded in the kernel"
+                        LogText "Result: module ${FS} is currently not loaded in the kernel."
                         AddHP 2 3
                         if IsDebug; then Display --indent 6 --text "- Module ${FS} not loaded (lsmod)" --result OK --color GREEN; fi
-                        # Tip to disable a particular module if it is not loaded TODO
-                        #ReportSuggestion ${TEST_NO} "The modprobe.d directory should contain a file with the entry 'install ${FS} /bin/true'"
                         FOUND=1
                         AVAILABLE_MODPROBE_FS="${AVAILABLE_MODPROBE_FS}${FS} "
                     else
@@ -843,9 +880,16 @@
                     AddHP 3 3
                     if IsDebug; then Display --indent 6 --text "- Module ${FS} not present in the kernel" --result OK --color GREEN; fi
                 fi
+                FIND1=$(${EGREPBINARY} "blacklist ${FS}" ${ROOTDIR}etc/modprobe.d/* | ${GREPBINARY} -v "#")
+                FIND2=$(${EGREPBINARY} "install ${FS} /bin/true" ${ROOTDIR}etc/modprobe.d/* | ${GREPBINARY} -v "#")
+                if [ -n "${FIND1}" ] || [ -n "${FIND2}" ]; then
+                    Display --indent 4 --text "- Module $FS is blacklisted" --result "OK" --color GREEN
+                    LogText "Result: module ${FS} is blacklisted"
+                fi
             done
             if [ ${FOUND} -eq 1 ]; then
                 Display --indent 4 --text "- Discovered kernel modules: ${AVAILABLE_MODPROBE_FS}"
+                ReportSuggestion "${TEST_NO}" "Consider disabling unused kernel modules" "/etc/modprobe.d/blacklist.conf" "Add 'install MODULENAME /bin/true' (without quotes)"
             fi
         else
             LogText "Test skipped lsmod binary not found or /proc/modules can not be opened"

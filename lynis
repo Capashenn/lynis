@@ -43,16 +43,16 @@
     PROGRAM_WEBSITE="https://cisofy.com/lynis/"
 
     # Version details
-    PROGRAM_RELEASE_DATE="2019-07-14"
-    PROGRAM_RELEASE_TIMESTAMP=1563094548
-    PROGRAM_RELEASE_TYPE="pre-release" # pre-release or release
+    PROGRAM_RELEASE_DATE="2020-06-18"
+    PROGRAM_RELEASE_TIMESTAMP=1592477492
+    PROGRAM_RELEASE_TYPE="release" # pre-release or release
     PROGRAM_VERSION="3.0.0"
 
     # Source, documentation and license
     PROGRAM_SOURCE="https://github.com/CISOfy/lynis"
     PROGRAM_PACKAGE="https://packages.cisofy.com/"
     PROGRAM_DOCUMENTATION="https://cisofy.com/docs/"
-    PROGRAM_COPYRIGHT="2007-2019, ${PROGRAM_AUTHOR} - ${PROGRAM_WEBSITE}"
+    PROGRAM_COPYRIGHT="2007-2020, ${PROGRAM_AUTHOR} - ${PROGRAM_WEBSITE}"
     PROGRAM_LICENSE="${PROGRAM_NAME} comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
   welcome to redistribute it under the terms of the GNU General Public License.
   See the LICENSE file for details about using this software."
@@ -248,7 +248,8 @@
 #
 #################################################################################
 #
-    trap CleanUp INT
+    trap CleanUp INT TERM
+    trap Status USR1
 
     # Use safe umask for the files we create
     umask 027
@@ -266,21 +267,21 @@
     # Disable logging if no alternative was provided
     if [ ${PRIVILEGED} -eq 0 ]; then
         if [ -z "${LOGFILE}" ]; then
-            # Try creating a log file in temporary directory
-            if [ ! -f /tmp/lynis.log ]; then
-                if [ -L /tmp/lynis.log ]; then echo "Log file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
-                touch /tmp/lynis.log
-                if [ $? -eq 0 ]; then LOGFILE="/tmp/lynis.log"; else LOGFILE="/dev/null"; fi
+            # Try creating a log file in home directory
+            if [ ! -f "$HOME/lynis.log" ]; then
+                if [ -L "$HOME/lynis.log" ]; then echo "Log file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
+                touch "$HOME/lynis.log"
+                if [ $? -eq 0 ]; then LOGFILE="$HOME/lynis.log"; else LOGFILE="/dev/null"; fi
             else
-                LOGFILE="/tmp/lynis.log"
+                LOGFILE="$HOME/lynis.log"
             fi
         else
             if [ -L "${LOGFILE}" ]; then echo "Log file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
         fi
         if [ -z "${REPORTFILE}" ]; then
-            touch /tmp/lynis-report.dat
-            if [ -L /tmp/lynis-report.dat ]; then echo "Report file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
-            if [ $? -eq 0 ]; then REPORTFILE="/tmp/lynis-report.dat"; else REPORTFILE="/dev/null"; fi
+            touch "$HOME/lynis-report.dat"
+            if [ -L "$HOME/lynis-report.dat" ]; then echo "Report file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
+            if [ $? -eq 0 ]; then REPORTFILE="$HOME/lynis-report.dat"; else REPORTFILE="/dev/null"; fi
         else
             if [ -L "${REPORTFILE}" ]; then echo "Report file is symlinked, which can introduce the risk of a symlink attack."; exit 1; fi
         fi
@@ -437,6 +438,7 @@ ${YELLOW}Note: ${WHITE}Cancelling the program can leave temporary files behind${
     ${GRAY}--no-colors${NORMAL}                       : Don't use colors in output
     ${GRAY}--quiet (-q)${NORMAL}                      : No output
     ${GRAY}--reverse-colors${NORMAL}                  : Optimize color display for light backgrounds
+    ${GRAY}--reverse-colours${NORMAL}                 : Optimize colour display for light backgrounds
 
     ${WHITE}Misc options${NORMAL}
     ${GRAY}--debug${NORMAL}                           : Debug logging to screen
@@ -522,6 +524,7 @@ ${NORMAL}
     if [ "${OS}" = "Linux" -a "${HOSTNAME}" = "${FQDN}" ]; then
         FQDN=$(hostname -f 2> /dev/null)
     fi
+
 #
 #################################################################################
 #
@@ -566,6 +569,7 @@ ${NORMAL}
     fi
     Report "test_category=${TEST_CATEGORY_TO_CHECK}"
     Report "test_group=${TEST_GROUP_TO_CHECK}"
+
 #
 #################################################################################
 #
@@ -628,6 +632,7 @@ ${NORMAL}
         echo "Make sure to execute ${PROGRAM_NAME} from untarred directory or check your installation."
         exit 1
     fi
+
 #
 #################################################################################
 #
@@ -770,7 +775,6 @@ ${NORMAL}
         if [ ${UPDATE_AVAILABLE} -eq 0 ]; then
             ReportSuggestion "LYNIS" "This release is more than 4 months old. Consider upgrading"
         fi
-        UPDATE_AVAILABLE=1
         OLD_RELEASE=1
     fi
 
@@ -816,6 +820,14 @@ ${NORMAL}
 #
 #################################################################################
 #
+    # Test if we have a package manager available by testing for a dummy package (should not exist)
+    if PackageIsInstalled "__dummy__"; then
+        HAS_PACKAGE_MANAGER=1
+        LogText "Informational: package manager is used"
+    else
+        LogText "Informational: no known package manager for this system"
+    fi
+
     # Use hardware detection capabilities
     IsVirtualMachine
     if IsContainer; then
@@ -979,11 +991,11 @@ ${NORMAL}
             LogText "Info: perform tests from all categories"
 
             INCLUDE_TESTS="accounting authentication banners boot_services containers crypto \
-                           databases dns filesystems file_permissions file_integrity firewalls \
-                           homedirs hardening webservers insecure_services kernel kernel_hardening \
-                           ldap logging mac_frameworks mail_messaging malware nameservices networking \
-                            php ports_packages printers_spools memory_processes scheduling shells \
-                           snmp squid ssh usb storage storage_nfs time tooling virtualization"
+                            databases dns filesystems file_permissions file_integrity firewalls \
+                            homedirs hardening webservers insecure_services kernel kernel_hardening \
+                            ldap logging mac_frameworks mail_messaging malware nameservices networking \
+                            php ports_packages printers_spoolers memory_processes scheduling shells \
+                            snmp squid ssh usb storage storage_nfs time tooling virtualization"
         else
             INCLUDE_TESTS="${TEST_GROUP_TO_CHECK}"
             LogText "Info: only performing tests from groups: ${TEST_GROUP_TO_CHECK}"
@@ -1131,4 +1143,4 @@ ${NORMAL}
 
 #
 #================================================================================
-# Lynis - Copyright 2007-2019, Michael Boelen, CISOfy - https://cisofy.com
+# Lynis - Copyright 2007-2020, Michael Boelen, CISOfy - https://cisofy.com

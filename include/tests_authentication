@@ -6,7 +6,7 @@
 # ------------------
 #
 # Copyright 2007-2013, Michael Boelen
-# Copyright 2007-2019, CISOfy
+# Copyright 2007-2020, CISOfy
 #
 # Website  : https://cisofy.com
 # Blog     : http://linux-audit.com
@@ -56,7 +56,7 @@
                 if [ "${USER}" = "toor" ]; then
                     LogText "BSD note: default there is a user 'toor' installed. This account is considered useless unless it"
                     LogText "is assigned a password and used for daily operations or emergencies. ie: bad shell for root user."
-                    ReportSuggestion ${TEST_NO} "Use vipw to delete the 'toor' user if not used."
+                    ReportSuggestion "${TEST_NO}" "Use vipw to delete the 'toor' user if not used."
                 fi
             done
         else
@@ -87,7 +87,7 @@
                 Display --indent 2 --text "- Unique UIDs" --result "${STATUS_WARNING}" --color RED
                 LogText "Result: found multiple accounts with same UID"
                 LogText "Output (non-unique UIDs): ${FIND}"
-                ReportWarning ${TEST_NO} "Multiple accounts found with same UID"
+                ReportWarning "${TEST_NO}" "Multiple accounts found with same UID"
             fi
           else
             Display --indent 2 --text "- Unique UIDs" --result "${STATUS_SKIPPED}" --color WHITE
@@ -115,7 +115,7 @@
             Display --indent 4 --text "- Checking consistency of /etc/group file" --result "${STATUS_WARNING}" --color RED
             LogText "Result: chkgrp found some errors. Run the tool manually to see details."
             LogText "chkgrp output: ${FIND}"
-            ReportWarning ${TEST_NO} "chkgrp reported inconsistencies in /etc/group file"
+            ReportWarning "${TEST_NO}" "chkgrp reported inconsistencies in /etc/group file"
         fi
     fi
 #
@@ -147,7 +147,7 @@
             LogText "Result: grpck binary didn't find any errors in the group files"
         else
             Display --indent 2 --text "- Consistency of group files (grpck)" --result "${STATUS_WARNING}" --color RED
-            ReportWarning ${TEST_NO} "grpck binary found errors in one or more group files"
+            ReportWarning "${TEST_NO}" "grpck binary found errors in one or more group files"
         fi
         unset FIND
     fi
@@ -157,51 +157,7 @@
     # Test        : AUTH-9218
     # Description : Check login shells for passwordless accounts
     # Notes       : Results should be checked
-    Register --test-no AUTH-9218 --os FreeBSD --weight L --network NO --category security --description "Check login shells for passwordless accounts"
-    if [ ${SKIPTEST} -eq 0 ]; then
-        FOUND=0
-        LogText "Test: Checking login shells"
-        if [ -f ${ROOTDIR}etc/master.passwd ]; then
-            # Check for all shells, except: (/usr)/sbin/nologin /nonexistent
-            FIND=$(${GREPBINARY} "[a-z]:\*:" /etc/master.passwd | ${EGREPBINARY} -v '^#|/sbin/nologin|/usr/sbin/nologin|/nonexistent' | ${SEDBINARY} 's/ /!space!/g')
-            if [ "${FIND}" = "" ]; then
-                Display --indent 2 --text "- Login shells" --result "${STATUS_OK}" --color GREEN
-            else
-                Display --indent 2 --text "- Login shells" --result "${STATUS_WARNING}" --color RED
-                for LINE in ${FIND}; do
-                    LINE=$(echo ${LINE} | ${SEDBINARY} 's/!space!/ /g')
-                    SHELL=$(echo ${LINE} | ${AWKBINARY} -F: '{ print $10 }')
-                    LogText "Output: ${LINE}"
-                    if [ -z "${SHELL}" ]; then
-                        LogText "Result: found no shell on line"
-                    else
-                        LogText "Result: found possible harmful shell ${SHELL}"
-                        if [ -f ${SHELL} ]; then
-                            LogText "Result: shell ${SHELL} does exist"
-                            FOUND=1
-                        else
-                            LogText "Result: shell ${SHELL} does not exist"
-                            ReportSuggestion ${TEST_NO} "Determine if account is needed, as shell ${SHELL} does not exist"
-                        fi
-                    fi
-                done
-                if [ ${FOUND} -eq 1 ]; then
-                    ReportWarning ${TEST_NO} "Possible harmful shell found (for passwordless account!)"
-                fi
-            fi
-          else
-            Display --indent 2 --text "- Login shells" --result "${STATUS_SKIPPED}" --color WHITE
-            LogText "Result: No /etc/master.passwd file found"
-        fi
-        unset LINE SHELL
-    fi
-#
-#################################################################################
-#
-    # Test        : AUTH-9489
-    # Description : Check login shells for passwordless accounts
-    # Notes       : Results should be checked
-    Register --test-no AUTH-9489 --os DragonFly --weight L --network NO --category security --description "Check login shells for passwordless accounts"
+    Register --test-no AUTH-9218 --os "DragonFly FreeBSD NetBSD OpenBSD" --root-only YES --weight L --network NO --category security --description "Check login shells for passwordless accounts"
     if [ ${SKIPTEST} -eq 0 ]; then
         FOUND=0
         LogText "Test: Checking login shells"
@@ -225,12 +181,12 @@
                             FOUND=1
                         else
                             LogText "Result: shell ${SHELL} does not exist"
-                            ReportSuggestion ${TEST_NO} "Determine if account is needed, as shell ${SHELL} does not exist"
+                            ReportSuggestion "${TEST_NO}" "Determine if account is needed, as shell ${SHELL} does not exist"
                         fi
                     fi
                 done
                 if [ ${FOUND} -eq 1 ]; then
-                    ReportWarning ${TEST_NO} "Possible harmful shell found (for passwordless account!)"
+                    ReportWarning "${TEST_NO}" "Possible harmful shell found (for passwordless account!)"
                 fi
             fi
           else
@@ -259,7 +215,7 @@
                 Report "auth_groups_nonunique[]=${I}"
                 LogText "Non-unique group: ${I}"
             done
-            ReportSuggestion ${TEST_NO} "Check your /etc/group file and correct any inconsistencies"
+            ReportSuggestion "${TEST_NO}" "Check your /etc/group file and correct any inconsistencies"
         fi
     fi
 #
@@ -283,7 +239,7 @@
                 Report "auth_groups_nonunique[]=${I}"
                 LogText "Non-unique group: ${I}"
             done
-            ReportSuggestion ${TEST_NO} "Check your ${ROOTDIR}etc/group file and correct any inconsistencies"
+            ReportSuggestion "${TEST_NO}" "Check your ${ROOTDIR}etc/group file and correct any inconsistencies"
         fi
     fi
 #
@@ -302,7 +258,7 @@
                 FIND=$(${ROOTDIR}usr/sbin/pwck -q -r 2> /dev/null; echo $?)
                 TESTED=1
             ;;
-            "Solaris")
+            "Solaris" | "HP-UX")
                 FIND=$(${ROOTDIR}usr/sbin/pwck 2> /dev/null; echo $?)
                 TESTED=1
             ;;
@@ -319,8 +275,121 @@
         else
             Display --indent 2 --text "- Password file consistency" --result "${STATUS_SUGGESTION}" --color YELLOW
             LogText "Result: pwck found one or more errors/warnings in the password file."
-            ReportSuggestion ${TEST_NO} "Run pwck manually and correct any errors in the password file"
+            ReportSuggestion "${TEST_NO}" "Run pwck manually and correct any errors in the password file"
             AddHP 0 2
+        fi
+    fi
+#
+#################################################################################
+#
+    # Test        : AUTH-9229
+    # Description : Check password hashing methods vs. recommendations in crypt(5)
+    # Notes       : Applicable to all Unix-like OS
+    #               Requires read access to /etc/shadow (if it exists)
+    Register --test-no AUTH-9229 --root-only YES --weight L --network NO --category security --description "Check password hashing methods"
+    if [ ${SKIPTEST} -eq 0 ]; then
+        LogText "Test: Checking password hashing methods"
+        SHADOW="";
+        if [ -e ${ROOTDIR}etc/shadow ]; then SHADOW="${ROOTDIR}etc/shadow"; fi
+        FIND=$(${CAT_BINARY} ${ROOTDIR}etc/passwd ${SHADOW} | ${AWKBINARY} -F : '{print length($2) ":" $2 }' | while read METHOD; do
+            case ${METHOD} in
+                1:\* | 1:x | 0: | *:!*)
+                    # disabled | shadowed | no password | locked account
+                    ;;
+                *:\$5\$*| *:\$6\$*)
+                    # sha256crypt | sha512crypt: check number of rounds, should be >5000
+                    ROUNDS=$(echo "${METHOD}" | sed -n 's/.*rounds=\([0-9]*\)\$.*/\1/gp')
+                    if [ -z "${ROUNDS}" ]; then
+                        echo 'sha256crypt/sha512crypt(default<=5000rounds)'
+                    elif [ "${ROUNDS}" -le 5000 ]; then
+                        echo 'sha256crypt/sha512crypt(<=5000rounds)'
+                    fi
+                    ;;
+                *:\$y\$* | *:\$gy\$* | *:\$2b\$* | *:\$7\$*)
+                    # yescrypt | gost-yescrypt | bcrypt | scrypt
+                    ;;
+                *:_*)
+                    echo bsdicrypt
+                    ;;
+                *:\$1\$*)
+                    echo md5crypt
+                    ;;
+                *:\$3\$*)
+                    echo NT
+                    ;;
+                *:\$md5*)
+                    echo SunMD5
+                    ;;
+                *:\$sha1*)
+                    echo sha1crypt
+                    ;;
+                13:* | 178:*)
+                    echo bigcrypt/descrypt
+                    ;;
+                *)
+                    echo "Unknown password hashing method ${METHOD}. Please report to lynis-dev@cisofy.com"
+                    ;;
+            esac
+        done | ${SORTBINARY} -u | ${TRBINARY} '\n' ' ')
+        if [ -z "${FIND}" ]; then
+            Display --indent 2 --text "- Password hashing methods" --result "${STATUS_OK}" --color GREEN
+            LogText "Result: no poor password hashing methods found"
+            AddHP 2 2
+        else
+            Display --indent 2 --text "- Password hashing methods" --result "${STATUS_SUGGESTION}" --color YELLOW
+            LogText "Result: poor password hashing methods found: ${FIND}"
+            ReportSuggestion "${TEST_NO}" "Check PAM configuration, add rounds if applicable and expire passwords to encrypt with new values"
+            AddHP 0 2
+        fi
+    fi
+#
+#################################################################################
+#
+    # Test        : AUTH-9230
+    # Description : Check group password hashing rounds in login.defs
+    # Notes       : Applicable to all Unix-like OS
+    PREQS_MET="NO"
+    if [ -f ${ROOTDIR}etc/login.defs ]; then
+        PREQS_MET="YES"
+    fi
+    Register --test-no AUTH-9230 --preqs-met ${PREQS_MET} --root-only NO --weight L --network NO --category security --description "Check group password hashing rounds"
+    if [ ${SKIPTEST} -eq 0 ]; then
+        LogText "Test: Checking SHA_CRYPT_MIN_ROUNDS option in ${ROOTDIR}etc/login.defs"
+        FIND=$(${GREPBINARY} "^SHA_CRYPT_MIN_ROUNDS" ${ROOTDIR}etc/login.defs | ${AWKBINARY} '{ if ($1=="SHA_CRYPT_MIN_ROUNDS") { print $2 } }')
+        if [ -z "${FIND}" -o "${FIND}" = "0" ]; then
+            LogText "Result: number of minimum rounds used by the encryption algorithm is not configured"
+            Display --indent 2 --text "- Checking minimum group password hashing rounds" --result "${STATUS_DISABLED}" --color YELLOW
+            ReportSuggestion "${TEST_NO}" "Configure minimum encryption algorithm rounds in /etc/login.defs"
+            AddHP 0 2
+        elif [ "${FIND}" -lt 5000 ]; then
+            LogText "Result: low number of minimum encryption algorithm rounds found: ${FIND}"
+            PASSWORD_MINIMUM_ROUNDS=${FIND}
+            Display --indent 2 --text "- Group password hashing rounds (minimum)"  --result "${STATUS_SUGGESTION}" --color YELLOW
+            AddHP 1 2
+        else
+            LogText "Result: number of encryption algorithm rounds is ${FIND}"
+            PASSWORD_MINIMUM_ROUNDS=${FIND}
+            Display --indent 2 --text "- Group password hashing rounds (minimum)" --result CONFIGURED --color GREEN
+            AddHP 2 2
+        fi
+
+        LogText "Test: Checking SHA_CRYPT_MAX_ROUNDS option in ${ROOTDIR}etc/login.defs"
+        FIND=$(${GREPBINARY} "^SHA_CRYPT_MAX_ROUNDS" ${ROOTDIR}etc/login.defs | ${AWKBINARY} '{ if ($1=="SHA_CRYPT_MAX_ROUNDS") { print $2 } }')
+        if [ -z "${FIND}" -o "${FIND}" = "0" ]; then
+            LogText "Result: number of maximum rounds used by the encryption algorithm is not configured"
+            Display --indent 2 --text "- Checking maximum group password hashing rounds" --result "${STATUS_DISABLED}" --color YELLOW
+            ReportSuggestion "${TEST_NO}" "Configure maximum encryption algorithm rounds in /etc/login.defs"
+            AddHP 0 2
+        elif [ "${FIND}" -lt 10000 ]; then
+            LogText "Result: low number of maximum encryption algorithm rounds found: ${FIND}"
+            PASSWORD_MINIMUM_ROUNDS=${FIND}
+            Display --indent 2 --text "- Group password hashing rounds (maximum)"  --result "${STATUS_SUGGESTION}" --color YELLOW
+            AddHP 1 2
+        else
+            LogText "Result: number of encryption algorithm rounds is ${FIND}"
+            PASSWORD_MINIMUM_ROUNDS=${FIND}
+            Display --indent 2 --text "- Group password hashing rounds (maximum)" --result CONFIGURED --color GREEN
+            AddHP 2 2
         fi
     fi
 #
@@ -331,7 +400,7 @@
     # Notes       : AIX: 100+
     #               HPUX: 100+
     #               macOS doesn't have any user info in /etc/passwd, users are managed with opendirectoryd)
-    #               OpenBSD/NetBSD: unknown
+    #               OpenBSD/NetBSD: 1000-60000, excluding 32767 (default)
     #               Arch Linux / CentOS / Ubuntu: 1000+
     Register --test-no AUTH-9234 --weight L --network NO --category security --description "Query user accounts"
     if [ ${SKIPTEST} -eq 0 ]; then
@@ -373,9 +442,21 @@
                 fi
             ;;
 
-            "OpenBSD")
-                LogText "OpenBSD real users output (ID = 0, or 1000-60000, but not 32767):"
-                FIND=$(${AWKBINARY} -F: '($3 >= 1000 && $3 <= 60000 && $3 != 32767) || ($3 == 0) { print $1","$3 }' /etc/passwd)
+            "NetBSD"|"OpenBSD")
+                if [ -f ${ROOTDIR}etc/usermgmt.conf ]; then
+                    UID_RANGE=$(${GREPBINARY} "^range" ${ROOTDIR}etc/usermgmt.conf | ${AWKBINARY} '{ sub(/\.\./, "-", $2); print $2 }')
+                fi
+                if [ -n "${UID_RANGE}" ]; then
+                    LogText "Result: found configured user id range specified: ${UID_RANGE}"
+                    UID_MIN=$(echo $UID_RANGE | ${AWKBINARY} -F- '{ print $1 }')
+                    UID_MAX=$(echo $UID_RANGE | ${AWKBINARY} -F- '{ print $2 }')
+                else
+                    UID_MIN=1000
+                    UID_MAX=60000
+                    LogText "Result: no configured user id range specified; using default ${UID_MIN}-${UID_MAX}"
+                fi
+                LogText "${OS} real users output (ID = 0, or ${UID_MIN}-${UID_MAX}, but not 32767):"
+                FIND=$(${AWKBINARY} -v UID_MIN="${UID_MIN}" -v UID_MAX="${UID_MAX}" -F: '($3 >= UID_MIN && $3 <= UID_MAX && $3 != 32767) || ($3 == 0) { print $1","$3 }' /etc/passwd)
             ;;
 
             "Solaris")
@@ -478,10 +559,10 @@
         done
         if [ ${FOUND} -eq 1 ]; then
             LogText "Result: sudoers file found (${SUDOERS_FILE})"
-            Display --indent 2 --text "- sudoers file" --result "${STATUS_FOUND}" --color GREEN
+            Display --indent 2 --text "- Sudoers file(s)" --result "${STATUS_FOUND}" --color GREEN
         else
             LogText "Result: sudoers file NOT found"
-            Display --indent 2 --text "- sudoers file" --result "${STATUS_NOT_FOUND}" --color YELLOW
+            Display --indent 2 --text "- Sudoers file" --result "${STATUS_NOT_FOUND}" --color YELLOW
         fi
     fi
 #
@@ -497,29 +578,57 @@
         if [ -d "${SUDOERS_D}" ]; then
             LogText "Test: checking drop-in directory (${SUDOERS_D})"
             FIND=$(${LSBINARY} -ld ${SUDOERS_D} | ${CUTBINARY} -c 2-10)
-            FIND2=$(${LSBINARY} -nd ${SUDOERS_D} | ${AWKBINARY} '{print $3$4}')
+            FIND2=$(${LSBINARY} -lnd ${SUDOERS_D} | ${AWKBINARY} '{print $3$4}')
             LogText "Result: Found directory permissions: ${FIND} and owner UID GID: ${FIND2}"
-            if [ "${FIND}" = "rwxrwx---" -o "${FIND}" = "rwxr-x---" -o "${FIND}" = "rwx------" ] && [ "${FIND2}" = "00" ]; then
-                LogText "Result: directory ${SUDOERS_D} permissions/ownership OK"
-                Display --indent 4 --text "- Permissions for directory: ${SUDOERS_D}" --result "${STATUS_OK}" --color GREEN
-            else
-                LogText "Result: directory has possibly unsafe permissions/ownership"
-                Display --indent 4 --text "- Permissions for directory: ${SUDOERS_D}" --result "${STATUS_WARNING}" --color RED
-            fi
+            case "${FIND}" in
+                rwx[r-][w-][x-]--- )
+                    LogText "Result: directory ${SUDOERS_D} permissions OK"
+                    if [ "${FIND2}" = "00" ]; then
+                        LogText "Result: directory ${SUDOERS_D} ownership OK"
+                        Display --indent 4 --text "- Permissions for directory: ${SUDOERS_D}" --result "${STATUS_OK}" --color GREEN
+                    else
+                        LogText "Result: directory ${SUDOERS_D} has possibly unsafe ownership"
+                        Display --indent 4 --text "- Permissions for directory: ${SUDOERS_D}" --result "${STATUS_WARNING}" --color RED
+                    fi
+                    ;;
+                * )
+                    LogText "Result: directory ${SUDOERS_D} has possibly unsafe permissions"
+                    if [ "${FIND2}" = "00" ]; then
+                        LogText "Result: directory ${SUDOERS_D} ownership OK"
+                    else
+                        LogText "Result: directory ${SUDOERS_D} has possibly unsafe ownership"
+                    fi
+                    Display --indent 4 --text "- Permissions for directory: ${SUDOERS_D}" --result "${STATUS_WARNING}" --color RED
+                    ;;
+            esac
             SUDO_CONFIG_FILES="${SUDO_CONFIG_FILES} $(${FINDBINARY} ${SUDOERS_D} -type f -print)"
         fi
         for f in ${SUDO_CONFIG_FILES}; do
             LogText "Test: checking file (${f})"
             FIND=$(${LSBINARY} -l ${f} | ${CUTBINARY} -c 2-10)
-            FIND2=$(${LSBINARY} -n ${f} | ${AWKBINARY} '{print $3$4}')
+            FIND2=$(${LSBINARY} -ln ${f} | ${AWKBINARY} '{print $3$4}')
             LogText "Result: Found file permissions: ${FIND} and owner UID GID: ${FIND2}"
-            if [ "${FIND}" = "rw-------" -o "${FIND}" = "rw-rw----" -o "${FIND}" = "r--r-----" ] && [ "${FIND2}" = "00" ]; then
-                LogText "Result: file ${f} permissions/ownership OK"
-                Display --indent 4 --text "- Permissions for: ${f}" --result "${STATUS_OK}" --color GREEN
-            else
-                LogText "Result: file has possibly unsafe permissions/ownership"
-                Display --indent 4 --text "- Permissions for: ${f}" --result "${STATUS_WARNING}" --color RED
-            fi
+            case "${FIND}" in
+                r[w-]-[r-][w-]---- )
+                    LogText "Result: file ${f} permissions OK"
+                    if [ "${FIND2}" = "00" ]; then
+                        LogText "Result: file ${f} ownership OK"
+                        Display --indent 4 --text "- Permissions for: ${f}" --result "${STATUS_OK}" --color GREEN
+                    else
+                        LogText "Result: file ${f} has possibly unsafe ownership"
+                        Display --indent 4 --text "- Permissions for: ${f}" --result "${STATUS_WARNING}" --color RED
+                    fi
+                    ;;
+                * )
+                    LogText "Result: file ${f} has possibly unsafe permissions"
+                    if [ "${FIND2}" = "00" ]; then
+                        LogText "Result: file ${f} ownership OK"
+                    else
+                        LogText "Result: file ${f} has possibly unsafe ownership"
+                    fi
+                    Display --indent 4 --text "- Permissions for: ${f}" --result "${STATUS_WARNING}" --color RED
+                    ;;
+            esac
         done
     fi
 #
@@ -535,7 +644,7 @@
             Display --indent 2 --text "- Passwordless accounts on Solaris" --result "${STATUS_OK}" --color GREEN
         else
             for I in ${FIND}; do
-                ReportWarning ${TEST_NO} "Found passwordless account (${I})"
+                ReportWarning "${TEST_NO}" "Found passwordless account (${I})"
             done
             Display --indent 2 --text "- Passwordless accounts on Solaris" --result "${STATUS_WARNING}" --color RED
         fi
@@ -602,7 +711,7 @@
         if [ ${FOUND} -eq 0 ]; then
             Display --indent 2 --text "- PAM password strength tools" --result "${STATUS_SUGGESTION}" --color YELLOW
             LogText "Result: no PAM modules for password strength testing found"
-            ReportSuggestion ${TEST_NO} "Install a PAM module for password strength testing like pam_cracklib or pam_passwdqc"
+            ReportSuggestion "${TEST_NO}" "Install a PAM module for password strength testing like pam_cracklib or pam_passwdqc"
             AddHP 0 3
         else
             Display --indent 2 --text "- PAM password strength tools" --result "${STATUS_OK}" --color GREEN
@@ -649,7 +758,7 @@
             LogText "Result: directory /etc/pam.d exists"
             Display --indent 2 --text "- PAM configuration files (pam.d)" --result "${STATUS_FOUND}" --color GREEN
             LogText "Test: searching PAM configuration files"
-            FIND=$(${FINDBINARY} ${ROOTDIR}etc/pam.d -not -name "*.pam-old" -type f -print | sort)
+            FIND=$(${FINDBINARY} ${ROOTDIR}etc/pam.d \! -name "*.pam-old" -type f -print | sort)
             for FILE in ${FIND}; do
                 LogText "Found file: ${FILE}"
             done
@@ -663,9 +772,9 @@
 #
     # Test        : AUTH-9268
     # Description : Searching available PAM files
-    # Notes       : PAM is used on AIX, FreeBSD, Linux, HPUX, Solaris
-    if [ ${OS} = "AIX" -o ${OS} = "Linux" -o ${OS} = "HPUX" -o ${OS} = "Solaris" ]; then PREQS_MET="YES"; else PREQS_MET="NO"; fi
-    Register --test-no AUTH-9268 --preqs-met ${PREQS_MET} --weight L --network NO --category security --description "Checking presence pam.d files"
+    # Notes       : PAM is used on AIX, FreeBSD, Linux, HPUX, NetBSD, Solaris
+    OS_USES_PAM="AIX DragonFly FreeBSD Linux HPUX NetBSD Solaris"
+    Register --test-no AUTH-9268 --os "${OS_USES_PAM}" --weight L --network NO --category security --description "Checking presence pam.d files"
     if [ ${SKIPTEST} -eq 0 ]; then
         FOUND=0
         LogText "Test: Searching pam modules"
@@ -822,7 +931,7 @@
         if [ -z "${FIND}" -o "${FIND}" = "0" ]; then
             LogText "Result: password minimum age is not configured"
             Display --indent 2 --text "- Checking user password aging (minimum)" --result "${STATUS_DISABLED}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Configure minimum password age in /etc/login.defs"
+            ReportSuggestion "${TEST_NO}" "Configure minimum password age in /etc/login.defs"
             AddHP 0 1
         else
             LogText "Result: password needs to be at least ${FIND} days old"
@@ -836,7 +945,7 @@
         if [ -z "${FIND}" -o "${FIND}" = "99999" ]; then
             LogText "Result: password aging limits are not configured"
             Display --indent 2 --text "- User password aging (maximum)" --result "${STATUS_DISABLED}" --color YELLOW
-            ReportSuggestion ${TEST_NO} "Configure maximum password age in /etc/login.defs"
+            ReportSuggestion "${TEST_NO}" "Configure maximum password age in /etc/login.defs"
             AddHP 0 1
         else
             LogText "Result: max password age is ${FIND} days"
@@ -904,7 +1013,7 @@
             else
                 LogText "Result: option present, no password needed at single user mode login"
                 Display --indent 2 --text "- Checking Solaris /etc/default/sulogin file" --result "${STATUS_WARNING}" --color RED
-                ReportWarning ${TEST_NO} "No password needed for single user mode login"
+                ReportWarning "${TEST_NO}" "No password needed for single user mode login"
                 AddHP 0 1
             fi
         else
@@ -934,7 +1043,7 @@
             else
                 LogText "Result: option present, no password needed at single user mode login"
                 Display --indent 2 --text "- Checking HP-UX boot authentication" --result "${STATUS_SUGGESTION}" --color YELLOW
-                ReportSuggestion ${TEST_NO} "Set password for system boot"
+                ReportSuggestion "${TEST_NO}" "Set password for system boot"
                 AddHP 0 1
             fi
         else
@@ -1013,8 +1122,8 @@
             if [ ${FOUND} -eq 0 ]; then
                 LogText "Result: option not set, no password needed at single user mode boot"
                 Display --indent 2 --text "- Checking Linux single user mode authentication" --result "${STATUS_WARNING}" --color RED
-                ReportWarning ${TEST_NO} "No password set for single mode"
-                ReportSuggestion ${TEST_NO} "Set password for single user mode to minimize physical access attack surface"
+                ReportWarning "${TEST_NO}" "No password set for single mode"
+                ReportSuggestion "${TEST_NO}" "Set password for single user mode to minimize physical access attack surface"
                 AddHP 0 2
             else
                 LogText "Result: option set, password is needed at single user mode boot"
@@ -1107,11 +1216,11 @@
                     AddHP 2 2
                 elif [ ${GOOD_UMASK} -eq 1 -a ${WEAK_UMASK} -eq 1 ]; then
                     Display --indent 4 --text "- umask (/etc/profile and /etc/profile.d)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "Some umasks found could be more strict (e.g. 027)"
+                    ReportSuggestion "${TEST_NO}" "Some umasks found could be more strict (e.g. 027)"
                     AddHP 1 2
                 else
                     Display --indent 4 --text "- umask (/etc/profile and /etc/profile.d)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "Default umask in /etc/profile or /etc/profile.d/custom.sh could be more strict (e.g. 027)"
+                    ReportSuggestion "${TEST_NO}" "Default umask in /etc/profile or /etc/profile.d/custom.sh could be more strict (e.g. 027)"
                     AddHP 0 2
                 fi
               else
@@ -1145,7 +1254,7 @@
             if [ "${FIND}" = "" ]; then
                 LogText "Result: umask value is not configured (most likely it will have the default 022 value)"
                 Display --indent 4 --text "- umask (/etc/login.defs)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                ReportSuggestion ${TEST_NO} "Default umask in /etc/login.defs could not be found and defaults usually to 022, which could be more strict like 027"
+                ReportSuggestion "${TEST_NO}" "Default umask in /etc/login.defs could not be found and defaults usually to 022, which could be more strict like 027"
                 AddHP 1 2
             elif [ "${FIND}" = "077" -o "${FIND}" = "027" -o "${FIND}" = "0077" -o "${FIND}" = "0027" ]; then
                 LogText "Result: umask is ${FIND}, which is fine"
@@ -1154,7 +1263,7 @@
             else
                 LogText "Result: found umask ${FIND}, which could be improved"
                 Display --indent 4 --text "- umask (/etc/login.defs)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                ReportSuggestion ${TEST_NO} "Default umask in /etc/login.defs could be more strict like 027"
+                ReportSuggestion "${TEST_NO}" "Default umask in /etc/login.defs could be more strict like 027"
                 AddHP 0 2
             fi
         else
@@ -1192,7 +1301,7 @@
             if [ "${FIND}" = "" ]; then
                 LogText "Result: UMASK value is not configured (most likely it will have the default 022 value)"
                 Display --indent 4 --text "- Checking umask (/etc/init.d/rc)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                ReportSuggestion ${TEST_NO} "Default umask in /etc/init.d/rc could not be found and defaults usually to 022, which could be more strict like 027"
+                ReportSuggestion "${TEST_NO}" "Default umask in /etc/init.d/rc could not be found and defaults usually to 022, which could be more strict like 027"
                 AddHP 1 2
             elif [ "${FIND}" = "077" -o "${FIND}" = "027" -o "${FIND}" = "0077" -o "${FIND}" = "0027" ]; then
                 LogText "Result: umask is ${FIND}, which is fine"
@@ -1201,7 +1310,7 @@
             else
                 LogText "Result: found umask ${FIND}, which could be improved"
                 Display --indent 4 --text "- umask (/etc/init.d/rc)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                ReportSuggestion ${TEST_NO} "Default umask in /etc/init.d/rc could be more strict like 027"
+                ReportSuggestion "${TEST_NO}" "Default umask in /etc/init.d/rc could be more strict like 027"
                 AddHP 0 2
             fi
           else
@@ -1236,7 +1345,7 @@
                     Display --indent 4 --text "- umask (/etc/login.conf)" --result "${STATUS_OK}" --color GREEN
                 else
                     Display --indent 4 --text "- umask (/etc/login.conf)" --result "${STATUS_WEAK}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "Umask in /etc/login.conf could be more strict like 027"
+                    ReportSuggestion "${TEST_NO}" "Umask in /etc/login.conf could be more strict like 027"
                 fi
             else
                 LogText "Result: no umask setting found in /etc/login.conf, which is unexpected"
@@ -1255,7 +1364,7 @@
                 if [ "${FIND2}" = "" ]; then
                     LogText "Result: UMASK value is not configured (most likely it will have the default 022 value)"
                     Display --indent 4 --text "- Checking umask (/etc/init.d/rcS)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "Default umask in /etc/init.d/rcS could not be found and defaults usually to 022, which could be more strict like 027"
+                    ReportSuggestion "${TEST_NO}" "Default umask in /etc/init.d/rcS could not be found and defaults usually to 022, which could be more strict like 027"
                     AddHP 1 2
                 elif [ "${FIND2}" = "077" -o "${FIND2}" = "027" ]; then
                     LogText "Result: umask is ${FIND2}, which is fine"
@@ -1264,7 +1373,7 @@
                 else
                     LogText "Result: found umask ${FIND2}, which could be improved"
                     Display --indent 4 --text "- umask (/etc/init.d/rcS)" --result "${STATUS_SUGGESTION}" --color YELLOW
-                    ReportSuggestion ${TEST_NO} "Default umask in /etc/init.d/rcS could be more strict like 027"
+                    ReportSuggestion "${TEST_NO}" "Default umask in /etc/init.d/rcS could be more strict like 027"
                     AddHP 0 2
                 fi
             else
@@ -1429,7 +1538,7 @@
             AddHP 3 3
         else
             AddHP 0 1
-            #ReportSuggestion ${TEST_NO} "Configure failed login attempts to be logged using pam_tally2 or /etc/login.defs"
+            #ReportSuggestion "${TEST_NO}" "Configure failed login attempts to be logged using pam_tally2 or /etc/login.defs"
         fi
     fi
 #
@@ -1468,13 +1577,16 @@
         LogText "Test: checking /etc/doas.conf permissions"
         FIND=$(ls -l ${DOAS_FILE} | ${CUTBINARY} -c 2-10)
         LogText "Result: Found /etc/doas.conf file permissions: ${FIND}"
-        if [ "${FIND}" = "rw-------" -o "${FIND}" = "rw-rw----" -o "${FIND}" = "r--r-----" ]; then
-            LogText "Result: file /etc/doas.conf has correct permissions"
-            Display --indent 4 --text "- Check doas file permissions" --result "${STATUS_OK}" --color GREEN
-        else
-            LogText "Result: file has possibly unsafe file permissions"
-            Display --indent 4 --text "- Check doas file permissions" --result "${STATUS_WARNING}" --color RED
-        fi
+        case "${FIND}" in
+            r[w-]-[r-][w-]---- )
+                LogText "Result: file /etc/doas.conf has correct permissions"
+                Display --indent 4 --text "- Check doas file permissions" --result "${STATUS_OK}" --color GREEN
+                ;;
+            * )
+                LogText "Result: file has possibly unsafe file permissions"
+                Display --indent 4 --text "- Check doas file permissions" --result "${STATUS_WARNING}" --color RED
+                ;;
+        esac
     fi
 #
 #################################################################################
